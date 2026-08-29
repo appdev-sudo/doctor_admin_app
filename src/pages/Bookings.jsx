@@ -10,6 +10,7 @@ const Bookings = () => {
   const [assignModal, setAssignModal] = useState({ show: false, bookingId: null });
   const [scheduleModal, setScheduleModal] = useState({ show: false, booking: null });
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [offlineModal, setOfflineModal] = useState(false);
   const [formData, setFormData] = useState({
     name: '', phone: '', email: '', age: '', sex: 'Male',
     serviceId: '', preferredDate: '', preferredTimeSlot: '10:00 AM',
