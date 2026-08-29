@@ -8,10 +8,9 @@ const Bookings = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [assignModal, setAssignModal] = useState({ show: false, bookingId: null });
+  const [assignModal, setAssignModal] = useState({ show: false, bookingId: null });
+  const [scheduleModal, setScheduleModal] = useState({ show: false, booking: null });
   const [selectedBooking, setSelectedBooking] = useState(null);
-  
-  // Offline Booking State
-  const [offlineModal, setOfflineModal] = useState(false);
   const [formData, setFormData] = useState({
     name: '', phone: '', email: '', age: '', sex: 'Male',
     serviceId: '', preferredDate: '', preferredTimeSlot: '10:00 AM',
@@ -137,6 +136,39 @@ const Bookings = () => {
       case 'in_progress': return { bg: 'rgba(139, 92, 246, 0.2)', color: '#8B5CF6' };
       case 'completed': return { bg: 'rgba(16, 185, 129, 0.2)', color: '#10B981' };
       default: return { bg: 'rgba(107, 114, 128, 0.2)', color: '#9CA3AF' };
+    }
+  };
+
+  const updateSchedule = async (e) => {
+    e.preventDefault();
+    try {
+      const form = e.target;
+      const data = {
+        preferredDate: form.date.value || null,
+        preferredTimeSlot: form.time.value || null,
+      };
+      if (scheduleModal.booking.locationType !== 'clinic') {
+        data.address = {
+          street: form.street.value,
+          city: form.city.value,
+          state: form.state.value,
+          pincode: form.pincode.value,
+        };
+      }
+      await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/admin/bookings/${scheduleModal.booking._id}/schedule`, data);
+      setScheduleModal({ show: false, booking: null });
+      fetchBookings();
+      if (selectedBooking && selectedBooking._id === scheduleModal.booking._id) {
+        setSelectedBooking({
+          ...selectedBooking,
+          preferredDate: data.preferredDate,
+          preferredTimeSlot: data.preferredTimeSlot,
+          ...(data.address ? { address: { ...selectedBooking.address, ...data.address } } : {})
+        });
+      }
+    } catch (error) {
+      console.error('Error updating schedule:', error);
+      alert('Error updating schedule');
     }
   };
 
@@ -305,8 +337,11 @@ const Bookings = () => {
                   <p><strong>Customer:</strong> {selectedBooking.user?.name || 'Unknown'}</p>
                   <p><strong>Phone:</strong> {selectedBooking.user?.phone}</p>
                   <p style={{ marginTop: '8px' }}><strong>Service:</strong> {selectedBooking.serviceTitle}</p>
-                  <p><strong>Preferred Slot:</strong> {selectedBooking.preferredDate ? new Date(selectedBooking.preferredDate).toLocaleDateString() : 'N/A'} at {selectedBooking.preferredTimeSlot}</p>
-                  <p style={{ marginTop: '8px' }}><strong>Address:</strong> {selectedBooking.address?.formattedAddress || `${selectedBooking.address?.street}, ${selectedBooking.address?.city}`}</p>
+                  <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px' }}>
+                    <span><strong>Preferred Slot:</strong> {selectedBooking.preferredDate ? new Date(selectedBooking.preferredDate).toLocaleDateString() : 'N/A'} at {selectedBooking.preferredTimeSlot}</span>
+                    <button className="btn btn-secondary" style={{ padding: '2px 8px', fontSize: '0.75rem' }} onClick={() => setScheduleModal({ show: true, booking: selectedBooking })}>Edit</button>
+                  </p>
+                  <p style={{ marginTop: '8px' }}><strong>Address:</strong> {selectedBooking.address?.formattedAddress || `${selectedBooking.address?.street || ''}, ${selectedBooking.address?.city || ''}`}</p>
                 </div>
                 
                 <h4 className="font-bold mb-3 mt-6 text-lg" style={{ color: 'var(--primary)' }}>Status & Payment</h4>
@@ -321,6 +356,9 @@ const Bookings = () => {
                       {selectedBooking.status.replace('_', ' ').toUpperCase()}
                     </span>
                   </p>
+                  {selectedBooking.startOtp && <p style={{ marginTop: '8px' }}><strong>Start OTP:</strong> <span style={{ color: '#F59E0B', letterSpacing: '2px', fontWeight: 'bold' }}>{selectedBooking.startOtp}</span></p>}
+                  {selectedBooking.endOtp && <p style={{ marginTop: '8px' }}><strong>End OTP:</strong> <span style={{ color: '#60A5FA', letterSpacing: '2px', fontWeight: 'bold' }}>{selectedBooking.endOtp}</span></p>}
+                  
                   <p style={{ marginTop: '8px' }}><strong>Payment:</strong> <span style={{ color: selectedBooking.paymentStatus === 'paid' ? '#10B981' : '#F59E0B' }}>{selectedBooking.paymentStatus.toUpperCase()}</span></p>
                   {selectedBooking.paymentId && <p><strong>Payment ID:</strong> {selectedBooking.paymentId}</p>}
                   
@@ -429,6 +467,69 @@ const Bookings = () => {
             <div className="flex justify-end pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
               <button className="btn btn-secondary" onClick={() => setSelectedBooking(null)}>Close</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {scheduleModal.show && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 80
+        }}>
+          <div className="glass-card" style={{ width: '500px', background: 'var(--bg-dark)' }}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold">Edit Schedule</h3>
+              <button onClick={() => setScheduleModal({ show: false, booking: null })} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={updateSchedule}>
+              <div className="input-group">
+                <label>Date</label>
+                <input type="date" name="date" className="glass-input" defaultValue={scheduleModal.booking.preferredDate ? new Date(scheduleModal.booking.preferredDate).toISOString().split('T')[0] : ''} />
+              </div>
+              <div className="input-group">
+                <label>Time</label>
+                <select name="time" className="glass-input" defaultValue={scheduleModal.booking.preferredTimeSlot || ''}>
+                  <option value="">-- None --</option>
+                  <option>08:00 AM</option><option>09:00 AM</option><option>10:00 AM</option>
+                  <option>11:00 AM</option><option>12:00 PM</option><option>01:00 PM</option>
+                  <option>02:00 PM</option><option>03:00 PM</option><option>04:00 PM</option>
+                  <option>05:00 PM</option><option>06:00 PM</option>
+                </select>
+              </div>
+
+              {scheduleModal.booking.locationType !== 'clinic' && (
+                <>
+                  <h4 className="font-bold mt-4 mb-2" style={{ color: 'var(--primary)' }}>Address</h4>
+                  <div className="input-group">
+                    <label>Street/Landmark</label>
+                    <input type="text" name="street" className="glass-input" defaultValue={scheduleModal.booking.address?.street || ''} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="input-group">
+                      <label>City</label>
+                      <input type="text" name="city" className="glass-input" defaultValue={scheduleModal.booking.address?.city || ''} />
+                    </div>
+                    <div className="input-group">
+                      <label>State</label>
+                      <input type="text" name="state" className="glass-input" defaultValue={scheduleModal.booking.address?.state || ''} />
+                    </div>
+                  </div>
+                  <div className="input-group">
+                    <label>Pincode</label>
+                    <input type="text" name="pincode" className="glass-input" defaultValue={scheduleModal.booking.address?.pincode || ''} />
+                  </div>
+                </>
+              )}
+
+              <div className="flex justify-end pt-4 gap-4" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setScheduleModal({ show: false, booking: null })}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Save Schedule</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
