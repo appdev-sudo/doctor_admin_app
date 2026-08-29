@@ -14,7 +14,7 @@ const Overview = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/admin/stats');
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/stats`);
         if (response.data.success) {
           setStats(response.data.stats);
         }

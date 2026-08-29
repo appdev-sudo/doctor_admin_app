@@ -9,7 +9,7 @@ const Nurses = () => {
 
   const fetchNurses = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/admin/nurses');
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/nurses`);
       if (response.data.success) {
         setNurses(response.data.nurses);
       }
@@ -26,7 +26,7 @@ const Nurses = () => {
 
   const toggleApproval = async (id, currentStatus) => {
     try {
-      await axios.put(`http://localhost:4000/api/admin/nurses/${id}/approve`, {
+      await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/admin/nurses/${id}/approve`, {
         isApproved: !currentStatus
       });
       fetchNurses();

@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post('http://localhost:4000/api/admin/login', { email, password });
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/admin/login`, { email, password });
       if (response.data.success) {
         localStorage.setItem('adminToken', response.data.token);
         localStorage.setItem('adminData', JSON.stringify(response.data.admin));

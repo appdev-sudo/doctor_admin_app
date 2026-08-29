@@ -10,7 +10,7 @@ const Bookings = () => {
 
   const fetchBookings = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/admin/bookings');
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/bookings`);
       if (response.data.success) {
         setBookings(response.data.bookings);
       }
@@ -23,7 +23,7 @@ const Bookings = () => {
 
   const fetchNurses = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/admin/nurses');
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/nurses`);
       if (response.data.success) {
         setNurses(response.data.nurses.filter(n => n.isApproved && n.isActive));
       }
@@ -47,7 +47,7 @@ const Bookings = () => {
 
   const assignNurse = async (nurseId) => {
     try {
-      await axios.post(`http://localhost:4000/api/admin/bookings/${assignModal.bookingId}/assign`, {
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/admin/bookings/${assignModal.bookingId}/assign`, {
         nurseId
       });
       closeAssignModal();
