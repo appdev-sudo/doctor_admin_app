@@ -144,10 +144,13 @@ const Bookings = () => {
     try {
       const form = e.target;
       const data = {
+        locationType: scheduleModal.locationType,
         preferredDate: form.date.value || null,
         preferredTimeSlot: form.time.value || null,
       };
-      if (scheduleModal.booking.locationType !== 'clinic') {
+      if (scheduleModal.locationType === 'clinic') {
+        data.clinicLocation = form.clinicLocation.value;
+      } else {
         data.address = {
           street: form.street.value,
           city: form.city.value,
@@ -156,7 +159,7 @@ const Bookings = () => {
         };
       }
       await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/admin/bookings/${scheduleModal.booking._id}/schedule`, data);
-      setScheduleModal({ show: false, booking: null });
+      setScheduleModal({ show: false, booking: null, locationType: 'home' });
       fetchBookings();
       if (selectedBooking && selectedBooking._id === scheduleModal.booking._id) {
         setSelectedBooking({
@@ -339,7 +342,9 @@ const Bookings = () => {
                   <p style={{ marginTop: '8px' }}><strong>Service:</strong> {selectedBooking.serviceTitle}</p>
                   <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px' }}>
                     <span><strong>Preferred Slot:</strong> {selectedBooking.preferredDate ? new Date(selectedBooking.preferredDate).toLocaleDateString() : 'N/A'} at {selectedBooking.preferredTimeSlot}</span>
-                    <button className="btn btn-secondary" style={{ padding: '2px 8px', fontSize: '0.75rem' }} onClick={() => setScheduleModal({ show: true, booking: selectedBooking })}>Edit</button>
+                    <div className="flex gap-2">
+                      <button className="btn btn-secondary" style={{ padding: '2px 8px', fontSize: '0.75rem' }} onClick={() => setScheduleModal({ show: true, booking: selectedBooking, locationType: selectedBooking.locationType || 'home' })}>Edit</button>
+                    </div>
                   </p>
                   <p style={{ marginTop: '8px' }}><strong>Address:</strong> {selectedBooking.address?.formattedAddress || `${selectedBooking.address?.street || ''}, ${selectedBooking.address?.city || ''}`}</p>
                 </div>
@@ -479,29 +484,63 @@ const Bookings = () => {
         }}>
           <div className="glass-card" style={{ width: '500px', background: 'var(--bg-dark)' }}>
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-bold">Edit Schedule</h3>
-              <button onClick={() => setScheduleModal({ show: false, booking: null })} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
+              <h3 className="font-bold text-xl">Edit Location & Schedule</h3>
+              <button onClick={() => setScheduleModal({ show: false, booking: null, locationType: 'home' })} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
                 <X size={24} />
               </button>
             </div>
             
-            <form onSubmit={updateSchedule}>
-              <div className="input-group">
-                <label>Date</label>
-                <input type="date" name="date" className="glass-input" defaultValue={scheduleModal.booking.preferredDate ? new Date(scheduleModal.booking.preferredDate).toISOString().split('T')[0] : ''} />
-              </div>
-              <div className="input-group">
-                <label>Time</label>
-                <select name="time" className="glass-input" defaultValue={scheduleModal.booking.preferredTimeSlot || ''}>
-                  <option value="">-- None --</option>
-                  <option>08:00 AM</option><option>09:00 AM</option><option>10:00 AM</option>
-                  <option>11:00 AM</option><option>12:00 PM</option><option>01:00 PM</option>
-                  <option>02:00 PM</option><option>03:00 PM</option><option>04:00 PM</option>
-                  <option>05:00 PM</option><option>06:00 PM</option>
-                </select>
+            <form onSubmit={updateSchedule} className="flex flex-col gap-4">
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="input-group">
+                  <label>Location Type</label>
+                  <select 
+                    className="glass-input" 
+                    value={scheduleModal.locationType} 
+                    onChange={e => setScheduleModal({...scheduleModal, locationType: e.target.value})}
+                  >
+                    <option value="home">Home Service</option>
+                    <option value="clinic">Clinic Visit</option>
+                  </select>
+                </div>
+                {scheduleModal.locationType === 'clinic' && (
+                  <div className="input-group">
+                    <label>Select Clinic</label>
+                    <select name="clinicLocation" className="glass-input" defaultValue={scheduleModal.booking.clinicLocation || 'Vytalyou Powai'}>
+                      <option>Vytalyou Powai</option>
+                      <option>Vytalyou Juhu</option>
+                      <option>Vytalyou Worli</option>
+                    </select>
+                  </div>
+                )}
               </div>
 
-              {scheduleModal.booking.locationType !== 'clinic' && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="input-group">
+                  <label>Date</label>
+                  <input type="date" name="date" className="glass-input" defaultValue={scheduleModal.booking.preferredDate ? new Date(scheduleModal.booking.preferredDate).toISOString().split('T')[0] : ''} />
+                </div>
+                <div className="input-group">
+                  <label>Time</label>
+                  <select name="time" className="glass-input" defaultValue={scheduleModal.booking.preferredTimeSlot || ''}>
+                    <option value="">Any Time</option>
+                    <option>08:00 AM</option>
+                    <option>09:00 AM</option>
+                    <option>10:00 AM</option>
+                    <option>11:00 AM</option>
+                    <option>12:00 PM</option>
+                    <option>01:00 PM</option>
+                    <option>02:00 PM</option>
+                    <option>03:00 PM</option>
+                    <option>04:00 PM</option>
+                    <option>05:00 PM</option>
+                    <option>06:00 PM</option>
+                  </select>
+                </div>
+              </div>
+
+              {scheduleModal.locationType !== 'clinic' && (
                 <>
                   <h4 className="font-bold mt-4 mb-2" style={{ color: 'var(--primary)' }}>Address</h4>
                   <div className="input-group">
@@ -525,8 +564,8 @@ const Bookings = () => {
                 </>
               )}
 
-              <div className="flex justify-end pt-4 gap-4" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setScheduleModal({ show: false, booking: null })}>Cancel</button>
+              <div className="flex justify-end gap-3 mt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setScheduleModal({ show: false, booking: null, locationType: 'home' })}>Cancel</button>
                 <button type="submit" className="btn btn-primary">Save Schedule</button>
               </div>
             </form>
@@ -607,28 +646,52 @@ const Bookings = () => {
                 </div>
               </div>
 
-              {/* Address */}
-              <h4 className="font-bold mb-3 text-lg" style={{ color: 'var(--primary)' }}>3. Address</h4>
+              {/* Location */}
+              <h4 className="font-bold mb-3 text-lg" style={{ color: 'var(--primary)' }}>3. Location</h4>
               <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="input-group" style={{ gridColumn: '1 / span 2', marginBottom: 0 }}>
-                  <label>Street / Landmark</label>
-                  <input type="text" className="glass-input" value={formData.street} onChange={e => setFormData({...formData, street: e.target.value})} />
+                <div className="input-group">
+                  <label>Location Type</label>
+                  <select className="glass-input" value={formData.locationType || 'home'} onChange={e => setFormData({...formData, locationType: e.target.value})}>
+                    <option value="home">Home Service</option>
+                    <option value="clinic">Clinic Visit</option>
+                  </select>
                 </div>
-                <div className="input-group" style={{ marginBottom: 0 }}>
-                  <label>City</label>
-                  <input type="text" className="glass-input" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="input-group" style={{ marginBottom: 0 }}>
-                    <label>State</label>
-                    <input type="text" className="glass-input" value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} />
+                {formData.locationType === 'clinic' && (
+                  <div className="input-group">
+                    <label>Select Clinic</label>
+                    <select className="glass-input" value={formData.clinicLocation || 'Vytalyou Powai'} onChange={e => setFormData({...formData, clinicLocation: e.target.value})}>
+                      <option>Vytalyou Powai</option>
+                      <option>Vytalyou Juhu</option>
+                      <option>Vytalyou Worli</option>
+                    </select>
                   </div>
-                  <div className="input-group" style={{ marginBottom: 0 }}>
-                    <label>Pincode</label>
-                    <input type="text" className="glass-input" value={formData.pincode} onChange={e => setFormData({...formData, pincode: e.target.value})} />
-                  </div>
-                </div>
+                )}
               </div>
+
+              {(!formData.locationType || formData.locationType === 'home') && (
+                <div className="mb-6">
+                  <div className="input-group mb-4">
+                    <label>Street Address</label>
+                    <input type="text" className="glass-input" value={formData.street} onChange={e => setFormData({...formData, street: e.target.value})} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="input-group" style={{ marginBottom: 0 }}>
+                      <label>City</label>
+                      <input type="text" className="glass-input" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="input-group" style={{ marginBottom: 0 }}>
+                        <label>State</label>
+                        <input type="text" className="glass-input" value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} />
+                      </div>
+                      <div className="input-group" style={{ marginBottom: 0 }}>
+                        <label>Pincode</label>
+                        <input type="text" className="glass-input" value={formData.pincode} onChange={e => setFormData({...formData, pincode: e.target.value})} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Assignment & Payment */}
               <h4 className="font-bold mb-3 text-lg" style={{ color: 'var(--primary)' }}>4. Assignment & Payment (Optional)</h4>
