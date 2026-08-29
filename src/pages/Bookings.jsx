@@ -17,7 +17,7 @@ const Bookings = () => {
     name: '', phone: '', email: '', age: '', sex: 'Male',
     serviceId: '', preferredDate: '', preferredTimeSlot: '10:00 AM',
     street: '', city: '', state: '', pincode: '', nurseId: '', paymentStatus: 'pending',
-    locationType: 'home', clinicLocation: ''
+    locationType: 'home', clinicLocation: 'Vytalyou Powai'
   });
 
   const fetchBookings = async () => {
@@ -73,7 +73,7 @@ const Bookings = () => {
           name: '', phone: '', email: '', age: '', sex: 'Male',
           serviceId: '', preferredDate: '', preferredTimeSlot: '10:00 AM',
           street: '', city: '', state: '', pincode: '', nurseId: '', paymentStatus: 'pending',
-          locationType: 'home', clinicLocation: ''
+          locationType: 'home', clinicLocation: 'Vytalyou Powai'
         });
         fetchBookings();
       }
@@ -107,10 +107,10 @@ const Bookings = () => {
       email: user.email || '',
       age: user.age || '',
       sex: user.sex || 'Male',
-      street: user.location?.address || '',
-      city: user.location?.city || '',
-      state: user.location?.state || '',
-      pincode: user.location?.pincode || ''
+      street: user.location?.address?.street || '',
+      city: user.location?.address?.city || '',
+      state: user.location?.address?.state || '',
+      pincode: user.location?.address?.pincode || ''
     });
     setUserSuggestions([]);
   };
@@ -466,7 +466,6 @@ const Bookings = () => {
                           Delete Booking
                         </button>
                       </div>
-                    )}
                   </div>
 
                   {selectedBooking.locationType !== 'clinic' && (
