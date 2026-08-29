@@ -8,7 +8,6 @@ const Bookings = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [assignModal, setAssignModal] = useState({ show: false, bookingId: null });
-  const [assignModal, setAssignModal] = useState({ show: false, bookingId: null });
   const [scheduleModal, setScheduleModal] = useState({ show: false, booking: null });
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [formData, setFormData] = useState({
