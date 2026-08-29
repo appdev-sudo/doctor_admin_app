@@ -288,21 +288,46 @@ const Bookings = () => {
                   {selectedBooking.completedAt && <p><strong>Completed:</strong> {new Date(selectedBooking.completedAt).toLocaleString()}</p>}
                 </div>
 
-                {selectedBooking.adminChart && (
+                {selectedBooking.adminCharts && selectedBooking.adminCharts.length > 0 && (
                   <>
                     <h4 className="font-bold mb-3 mt-6 text-lg flex items-center gap-2" style={{ color: 'var(--primary)' }}>
                       <Activity size={18} /> Medical Vitals
                     </h4>
-                    <div className="glass-card" style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                      <p><strong>BP:</strong> {selectedBooking.adminChart.bloodPressure || '--'} mmHg</p>
-                      <p><strong>HR:</strong> {selectedBooking.adminChart.heartRate || '--'} bpm</p>
-                      <p><strong>Temp:</strong> {selectedBooking.adminChart.temperature || '--'} °F</p>
-                      <p><strong>SpO2:</strong> {selectedBooking.adminChart.spo2 || '--'} %</p>
-                      <p><strong>Weight:</strong> {selectedBooking.adminChart.weight || '--'} kg</p>
-                      {selectedBooking.adminChart.notes && (
-                        <p style={{ gridColumn: '1 / span 2', marginTop: '8px' }}><strong>Notes:</strong> {selectedBooking.adminChart.notes}</p>
-                      )}
-                    </div>
+                    {selectedBooking.adminCharts.map((chart, idx) => (
+                      <div key={idx} className="glass-card mb-3" style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        <p style={{ gridColumn: '1 / span 2', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                          Recorded: {new Date(chart.recordedAt).toLocaleString()}
+                        </p>
+                        <p><strong>BP:</strong> {chart.bloodPressure || '--'} mmHg</p>
+                        <p><strong>HR:</strong> {chart.heartRate || '--'} bpm</p>
+                        <p><strong>SpO2:</strong> {chart.spo2 || '--'} %</p>
+                        {chart.notes && (
+                          <p style={{ gridColumn: '1 / span 2', marginTop: '4px' }}><strong>Notes:</strong> {chart.notes}</p>
+                        )}
+                      </div>
+                    ))}
+                  </>
+                )}
+
+                {selectedBooking.expenses && selectedBooking.expenses.length > 0 && (
+                  <>
+                    <h4 className="font-bold mb-3 mt-6 text-lg flex items-center gap-2" style={{ color: 'var(--primary)' }}>
+                      Expenses
+                    </h4>
+                    {selectedBooking.expenses.map((exp, idx) => (
+                      <div key={idx} className="glass-card mb-3" style={{ padding: '12px' }}>
+                        <div className="flex justify-between items-center mb-1">
+                          <strong>{exp.name}</strong>
+                          <span style={{ color: '#10B981', fontWeight: 'bold' }}>Rs. {exp.price.toFixed(2)}</span>
+                        </div>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{exp.type}</p>
+                        {exp.receiptUrl && (
+                          <a href={exp.receiptUrl} target="_blank" rel="noreferrer" style={{ display: 'inline-block', marginTop: '8px', color: 'var(--primary)', fontSize: '0.85rem', textDecoration: 'underline' }}>
+                            View Receipt
+                          </a>
+                        )}
+                      </div>
+                    ))}
                   </>
                 )}
 
