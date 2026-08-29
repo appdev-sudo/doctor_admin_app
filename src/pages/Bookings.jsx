@@ -11,10 +11,13 @@ const Bookings = () => {
   const [scheduleModal, setScheduleModal] = useState({ show: false, booking: null });
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [offlineModal, setOfflineModal] = useState(false);
+  const [editModal, setEditModal] = useState({ show: false, booking: null });
+  const [userSuggestions, setUserSuggestions] = useState([]);
   const [formData, setFormData] = useState({
     name: '', phone: '', email: '', age: '', sex: 'Male',
     serviceId: '', preferredDate: '', preferredTimeSlot: '10:00 AM',
-    street: '', city: '', state: '', pincode: '', nurseId: '', paymentStatus: 'pending'
+    street: '', city: '', state: '', pincode: '', nurseId: '', paymentStatus: 'pending',
+    locationType: 'home', clinicLocation: ''
   });
 
   const fetchBookings = async () => {
@@ -69,13 +72,86 @@ const Bookings = () => {
         setFormData({
           name: '', phone: '', email: '', age: '', sex: 'Male',
           serviceId: '', preferredDate: '', preferredTimeSlot: '10:00 AM',
-          street: '', city: '', state: '', pincode: '', nurseId: '', paymentStatus: 'pending'
+          street: '', city: '', state: '', pincode: '', nurseId: '', paymentStatus: 'pending',
+          locationType: 'home', clinicLocation: ''
         });
         fetchBookings();
       }
     } catch (error) {
       console.error('Offline booking error:', error);
       alert('Failed to create booking: ' + (error.response?.data?.message || 'Server error'));
+    }
+  };
+
+  const handlePhoneSearch = async (query) => {
+    setFormData({ ...formData, phone: query });
+    if (query.length >= 3) {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/users/search?q=${query}`);
+        if (res.data.success) {
+          setUserSuggestions(res.data.users);
+        }
+      } catch (err) {
+        console.error('Search error:', err);
+      }
+    } else {
+      setUserSuggestions([]);
+    }
+  };
+
+  const selectUserSuggestion = (user) => {
+    setFormData({
+      ...formData,
+      name: user.name || '',
+      phone: user.phone || '',
+      email: user.email || '',
+      age: user.age || '',
+      sex: user.sex || 'Male',
+      street: user.location?.address || '',
+      city: user.location?.city || '',
+      state: user.location?.state || '',
+      pincode: user.location?.pincode || ''
+    });
+    setUserSuggestions([]);
+  };
+
+  const deleteBooking = async (bookingId) => {
+    if (!window.confirm("Are you sure you want to permanently delete this booking?")) return;
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/admin/bookings/${bookingId}`);
+      if (selectedBooking && selectedBooking._id === bookingId) {
+        setSelectedBooking(null);
+      }
+      fetchBookings();
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert('Error deleting booking');
+    }
+  };
+
+  const handleFullEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const form = e.target;
+      const data = {
+        name: form.name.value,
+        phone: form.phone.value,
+        age: form.age.value,
+        sex: form.sex.value,
+        serviceId: form.serviceId.value,
+        serviceTitle: form.options[form.selectedIndex]?.text
+      };
+      const res = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/admin/bookings/${editModal.booking._id}/edit`, data);
+      if (res.data.success) {
+        setEditModal({ show: false, booking: null });
+        fetchBookings();
+        if (selectedBooking && selectedBooking._id === editModal.booking._id) {
+          setSelectedBooking(res.data.booking);
+        }
+      }
+    } catch (err) {
+      console.error('Edit error:', err);
+      alert('Error saving details');
     }
   };
 
@@ -335,7 +411,10 @@ const Bookings = () => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
               {/* Left Column */}
               <div>
-                <h4 className="font-bold mb-3 text-lg" style={{ color: 'var(--primary)' }}>Customer & Service</h4>
+                <h4 className="font-bold mb-3 text-lg flex items-center justify-between" style={{ color: 'var(--primary)' }}>
+                  <span>Customer & Service</span>
+                  <button className="btn btn-secondary" style={{ padding: '2px 8px', fontSize: '0.75rem' }} onClick={() => setEditModal({ show: true, booking: selectedBooking })}>Edit Details</button>
+                </h4>
                 <div className="glass-card" style={{ padding: '16px' }}>
                   <p><strong>Customer:</strong> {selectedBooking.user?.name || 'Unknown'}</p>
                   <p><strong>Phone:</strong> {selectedBooking.user?.phone}</p>
@@ -378,21 +457,13 @@ const Bookings = () => {
                         {selectedBooking.locationType ? selectedBooking.locationType.toUpperCase() : 'HOME'}
                       </span>
                     </p>
-                    {['pending', 'assigned'].includes(selectedBooking.status) && (
                       <div className="flex gap-2 mt-3">
                         <button 
-                          className={`btn ${selectedBooking.locationType !== 'clinic' ? 'btn-primary' : 'btn-secondary'}`}
-                          style={{ flex: 1, padding: '4px', fontSize: '0.8rem' }}
-                          onClick={() => toggleLocation(selectedBooking._id, 'home')}
+                          className="btn btn-secondary text-red-400"
+                          style={{ flex: 1, padding: '4px', fontSize: '0.8rem', borderColor: 'rgba(248, 113, 113, 0.5)' }}
+                          onClick={() => deleteBooking(selectedBooking._id)}
                         >
-                          Set Home
-                        </button>
-                        <button 
-                          className={`btn ${selectedBooking.locationType === 'clinic' ? 'btn-primary' : 'btn-secondary'}`}
-                          style={{ flex: 1, padding: '4px', fontSize: '0.8rem' }}
-                          onClick={() => toggleLocation(selectedBooking._id, 'clinic')}
-                        >
-                          Set Clinic
+                          Delete Booking
                         </button>
                       </div>
                     )}
@@ -595,7 +666,18 @@ const Bookings = () => {
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="input-group">
                   <label>Phone Number *</label>
-                  <input type="text" className="glass-input" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} placeholder="e.g. +919876543210" />
+                  <div style={{ position: 'relative' }}>
+                    <input type="text" className="glass-input" required value={formData.phone} onChange={e => handlePhoneSearch(e.target.value)} placeholder="e.g. +919876543210" />
+                    {userSuggestions.length > 0 && (
+                      <div className="glass-card" style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, maxHeight: '200px', overflowY: 'auto', padding: '0', marginTop: '4px', border: '1px solid rgba(255,255,255,0.2)' }}>
+                        {userSuggestions.map(u => (
+                          <div key={u._id} onClick={() => selectUserSuggestion(u)} style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.05)' }} className="hover:bg-white/10">
+                            <strong>{u.name || 'No Name'}</strong> - {u.phone}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="input-group">
                   <label>Full Name</label>
@@ -722,6 +804,65 @@ const Bookings = () => {
           </div>
         </div>
       )}
+      {/* FULL EDIT MODAL */}
+      {editModal.show && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 70,
+          padding: '20px'
+        }}>
+          <div className="glass-card" style={{ width: '500px', background: 'var(--bg-dark)' }}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-bold text-xl">Edit Details</h3>
+              <button onClick={() => setEditModal({ show: false, booking: null })} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleFullEditSubmit} className="flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="input-group">
+                  <label>Full Name</label>
+                  <input type="text" name="name" className="glass-input" required defaultValue={editModal.booking.user?.name || ''} />
+                </div>
+                <div className="input-group">
+                  <label>Phone Number</label>
+                  <input type="text" name="phone" className="glass-input" required defaultValue={editModal.booking.user?.phone || ''} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="input-group">
+                  <label>Age</label>
+                  <input type="number" name="age" className="glass-input" defaultValue={editModal.booking.user?.age || ''} />
+                </div>
+                <div className="input-group">
+                  <label>Sex</label>
+                  <select name="sex" className="glass-input" defaultValue={editModal.booking.user?.sex || 'Male'}>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+              </div>
+              <div className="input-group mb-2">
+                <label>Assigned Service</label>
+                <select name="serviceId" className="glass-input" defaultValue={editModal.booking.serviceId}>
+                  {services.map(s => (
+                    <option key={s._id} value={s.serviceId}>{s.title}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setEditModal({ show: false, booking: null })}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
