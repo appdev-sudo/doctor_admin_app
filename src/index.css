@@ -173,3 +173,5 @@ select.glass-input option {
 .text-muted { color: var(--text-muted); }
 .font-bold { font-weight: 700; }
 .w-full { width: 100%; }
+.grid { display: grid; }
+.grid-cols-2 { grid-template-columns: 1fr 1fr; }

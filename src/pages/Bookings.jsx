@@ -345,26 +345,26 @@ const Bookings = () => {
               {/* Customer Details */}
               <h4 className="font-bold mb-3 text-lg" style={{ color: 'var(--primary)' }}>1. Customer Details</h4>
               <div className="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                  <label className="block text-sm mb-1 text-muted">Phone Number *</label>
-                  <input type="text" className="w-full glass-input" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} placeholder="e.g. +919876543210" />
+                <div className="input-group">
+                  <label>Phone Number *</label>
+                  <input type="text" className="glass-input" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} placeholder="e.g. +919876543210" />
                 </div>
-                <div>
-                  <label className="block text-sm mb-1 text-muted">Full Name</label>
-                  <input type="text" className="w-full glass-input" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="John Doe" />
+                <div className="input-group">
+                  <label>Full Name</label>
+                  <input type="text" className="glass-input" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="John Doe" />
                 </div>
-                <div>
-                  <label className="block text-sm mb-1 text-muted">Email</label>
-                  <input type="email" className="w-full glass-input" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="john@example.com" />
+                <div className="input-group">
+                  <label>Email</label>
+                  <input type="email" className="glass-input" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="john@example.com" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm mb-1 text-muted">Age</label>
-                    <input type="number" className="w-full glass-input" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} />
+                  <div className="input-group">
+                    <label>Age</label>
+                    <input type="number" className="glass-input" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} />
                   </div>
-                  <div>
-                    <label className="block text-sm mb-1 text-muted">Sex</label>
-                    <select className="w-full glass-input" value={formData.sex} onChange={e => setFormData({...formData, sex: e.target.value})}>
+                  <div className="input-group">
+                    <label>Sex</label>
+                    <select className="glass-input" value={formData.sex} onChange={e => setFormData({...formData, sex: e.target.value})}>
                       <option>Male</option>
                       <option>Female</option>
                       <option>Other</option>
@@ -376,22 +376,22 @@ const Bookings = () => {
               {/* Service & Schedule */}
               <h4 className="font-bold mb-3 text-lg" style={{ color: 'var(--primary)' }}>2. Service & Schedule</h4>
               <div className="grid grid-cols-2 gap-4 mb-6">
-                <div style={{ gridColumn: '1 / span 2' }}>
-                  <label className="block text-sm mb-1 text-muted">Select Service *</label>
-                  <select className="w-full glass-input" required value={formData.serviceId} onChange={e => setFormData({...formData, serviceId: e.target.value})}>
+                <div className="input-group" style={{ gridColumn: '1 / span 2', marginBottom: 0 }}>
+                  <label>Select Service *</label>
+                  <select className="glass-input" required value={formData.serviceId} onChange={e => setFormData({...formData, serviceId: e.target.value})}>
                     <option value="">-- Choose a Service --</option>
                     {services.map(s => (
                       <option key={s._id} value={s.serviceId}>{s.title}</option>
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm mb-1 text-muted">Preferred Date</label>
-                  <input type="date" className="w-full form-input" value={formData.preferredDate} onChange={e => setFormData({...formData, preferredDate: e.target.value})} />
+                <div className="input-group" style={{ marginBottom: 0 }}>
+                  <label>Preferred Date</label>
+                  <input type="date" className="glass-input" value={formData.preferredDate} onChange={e => setFormData({...formData, preferredDate: e.target.value})} />
                 </div>
-                <div>
-                  <label className="block text-sm mb-1 text-muted">Preferred Time</label>
-                  <select className="w-full form-input" value={formData.preferredTimeSlot} onChange={e => setFormData({...formData, preferredTimeSlot: e.target.value})}>
+                <div className="input-group" style={{ marginBottom: 0 }}>
+                  <label>Preferred Time</label>
+                  <select className="glass-input" value={formData.preferredTimeSlot} onChange={e => setFormData({...formData, preferredTimeSlot: e.target.value})}>
                     <option>08:00 AM</option><option>10:00 AM</option><option>12:00 PM</option>
                     <option>02:00 PM</option><option>04:00 PM</option><option>06:00 PM</option>
                   </select>
@@ -401,31 +401,31 @@ const Bookings = () => {
               {/* Address */}
               <h4 className="font-bold mb-3 text-lg" style={{ color: 'var(--primary)' }}>3. Address</h4>
               <div className="grid grid-cols-2 gap-4 mb-6">
-                <div style={{ gridColumn: '1 / span 2' }}>
-                  <label className="block text-sm mb-1 text-muted">Street / Landmark</label>
-                  <input type="text" className="w-full form-input" value={formData.street} onChange={e => setFormData({...formData, street: e.target.value})} />
+                <div className="input-group" style={{ gridColumn: '1 / span 2', marginBottom: 0 }}>
+                  <label>Street / Landmark</label>
+                  <input type="text" className="glass-input" value={formData.street} onChange={e => setFormData({...formData, street: e.target.value})} />
                 </div>
-                <div>
-                  <label className="block text-sm mb-1 text-muted">City</label>
-                  <input type="text" className="w-full form-input" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} />
+                <div className="input-group" style={{ marginBottom: 0 }}>
+                  <label>City</label>
+                  <input type="text" className="glass-input" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm mb-1 text-muted">State</label>
-                    <input type="text" className="w-full form-input" value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} />
+                  <div className="input-group" style={{ marginBottom: 0 }}>
+                    <label>State</label>
+                    <input type="text" className="glass-input" value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} />
                   </div>
-                  <div>
-                    <label className="block text-sm mb-1 text-muted">Pincode</label>
-                    <input type="text" className="w-full form-input" value={formData.pincode} onChange={e => setFormData({...formData, pincode: e.target.value})} />
+                  <div className="input-group" style={{ marginBottom: 0 }}>
+                    <label>Pincode</label>
+                    <input type="text" className="glass-input" value={formData.pincode} onChange={e => setFormData({...formData, pincode: e.target.value})} />
                   </div>
                 </div>
               </div>
 
               {/* Assignment */}
               <h4 className="font-bold mb-3 text-lg" style={{ color: 'var(--primary)' }}>4. Immediate Assignment (Optional)</h4>
-              <div className="mb-6">
-                <label className="block text-sm mb-1 text-muted">Assign Nurse Now</label>
-                <select className="w-full form-input" value={formData.nurseId} onChange={e => setFormData({...formData, nurseId: e.target.value})}>
+              <div className="input-group mb-6">
+                <label>Assign Nurse Now</label>
+                <select className="glass-input" value={formData.nurseId} onChange={e => setFormData({...formData, nurseId: e.target.value})}>
                   <option value="">-- Leave Unassigned --</option>
                   {nurses.map(n => (
                     <option key={n._id} value={n._id}>{n.name}</option>
