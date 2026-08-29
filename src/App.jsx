@@ -6,6 +6,7 @@ import DashboardLayout from './pages/DashboardLayout';
 import Overview from './pages/Overview';
 import Nurses from './pages/Nurses';
 import Bookings from './pages/Bookings';
+import Subscriptions from './pages/Subscriptions';
 import './index.css';
 
 const ProtectedRoute = ({ children }) => {
@@ -28,6 +29,7 @@ const App = () => {
             <Route index element={<Overview />} />
             <Route path="nurses" element={<Nurses />} />
             <Route path="bookings" element={<Bookings />} />
+            <Route path="subscriptions" element={<Subscriptions />} />
           </Route>
         </Routes>
       </BrowserRouter>

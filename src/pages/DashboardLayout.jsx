@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Users, CalendarDays, LogOut, Activity } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, LogOut, Activity, Layers } from 'lucide-react';
 
 const DashboardLayout = () => {
   const { admin, logout } = useAuth();
@@ -49,6 +49,9 @@ const DashboardLayout = () => {
           </NavLink>
           <NavLink to="/bookings" style={navLinkStyle}>
             <CalendarDays size={20} /> Bookings
+          </NavLink>
+          <NavLink to="/subscriptions" style={navLinkStyle}>
+            <Layers size={20} /> Subscriptions
           </NavLink>
         </nav>
 
