@@ -101,6 +101,35 @@ const Bookings = () => {
     }
   };
 
+  const toggleLocation = async (bookingId, newLocation) => {
+    try {
+      await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/admin/bookings/${bookingId}/location`, {
+        locationType: newLocation
+      });
+      fetchBookings();
+      if (selectedBooking && selectedBooking._id === bookingId) {
+        setSelectedBooking(prev => ({ ...prev, locationType: newLocation }));
+      }
+    } catch (error) {
+      console.error('Error toggling location:', error);
+      alert('Error updating location');
+    }
+  };
+
+  const completeClinicSession = async (bookingId) => {
+    if (!window.confirm("Are you sure you want to mark this clinic session as completed?")) return;
+    try {
+      await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/admin/bookings/${bookingId}/complete-clinic`);
+      fetchBookings();
+      if (selectedBooking && selectedBooking._id === bookingId) {
+        setSelectedBooking(null);
+      }
+    } catch (error) {
+      console.error('Error completing clinic session:', error);
+      alert('Error completing session');
+    }
+  };
+
   const getStatusColor = (status) => {
     switch(status) {
       case 'pending': return { bg: 'rgba(245, 158, 11, 0.2)', color: '#F59E0B' };
@@ -151,7 +180,14 @@ const Bookings = () => {
                     <div className="font-bold">{booking.user?.name || 'Unknown'}</div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{booking.user?.phone}</div>
                   </td>
-                  <td className="font-bold">{booking.serviceTitle}</td>
+                  <td className="font-bold">
+                    {booking.serviceTitle}
+                    {booking.isSubscriptionSession && booking.sessionName && (
+                      <div style={{ fontSize: '0.8rem', color: 'var(--accent-teal)', marginTop: '2px' }}>
+                        Session: {booking.sessionName}
+                      </div>
+                    )}
+                  </td>
                   <td>
                     <div>{booking.preferredDate ? new Date(booking.preferredDate).toLocaleDateString() : 'N/A'}</div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{booking.preferredTimeSlot}</div>
@@ -178,14 +214,27 @@ const Bookings = () => {
                       >
                         <Eye size={14} /> View
                       </button>
-                      {['pending', 'assigned', 'rejected'].includes(booking.status) && (
-                        <button 
-                          className="btn btn-primary"
-                          style={{ padding: '6px 12px', fontSize: '0.85rem' }}
-                          onClick={() => openAssignModal(booking._id)}
-                        >
-                          <Stethoscope size={14} /> Assign
-                        </button>
+                      
+                      {booking.locationType === 'clinic' ? (
+                         ['pending', 'assigned'].includes(booking.status) && (
+                          <button 
+                            className="btn btn-primary"
+                            style={{ padding: '6px 12px', fontSize: '0.85rem', backgroundColor: '#10B981', borderColor: '#10B981' }}
+                            onClick={() => completeClinicSession(booking._id)}
+                          >
+                            Mark Completed
+                          </button>
+                         )
+                      ) : (
+                         ['pending', 'assigned', 'rejected'].includes(booking.status) && (
+                          <button 
+                            className="btn btn-primary"
+                            style={{ padding: '6px 12px', fontSize: '0.85rem' }}
+                            onClick={() => openAssignModal(booking._id)}
+                          >
+                            <Stethoscope size={14} /> Assign
+                          </button>
+                        )
                       )}
                     </div>
                   </td>
@@ -274,7 +323,41 @@ const Bookings = () => {
                   </p>
                   <p style={{ marginTop: '8px' }}><strong>Payment:</strong> <span style={{ color: selectedBooking.paymentStatus === 'paid' ? '#10B981' : '#F59E0B' }}>{selectedBooking.paymentStatus.toUpperCase()}</span></p>
                   {selectedBooking.paymentId && <p><strong>Payment ID:</strong> {selectedBooking.paymentId}</p>}
-                  <p style={{ marginTop: '8px' }}><strong>Assigned Nurse:</strong> {selectedBooking.nurse?.name || 'Unassigned'}</p>
+                  
+                  <div style={{ marginTop: '16px', padding: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                    <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <strong>Location Type:</strong>
+                      <span style={{ 
+                        padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem',
+                        backgroundColor: selectedBooking.locationType === 'clinic' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(139, 92, 246, 0.2)',
+                        color: selectedBooking.locationType === 'clinic' ? '#3B82F6' : '#8B5CF6'
+                      }}>
+                        {selectedBooking.locationType ? selectedBooking.locationType.toUpperCase() : 'HOME'}
+                      </span>
+                    </p>
+                    {['pending', 'assigned'].includes(selectedBooking.status) && (
+                      <div className="flex gap-2 mt-3">
+                        <button 
+                          className={`btn ${selectedBooking.locationType !== 'clinic' ? 'btn-primary' : 'btn-secondary'}`}
+                          style={{ flex: 1, padding: '4px', fontSize: '0.8rem' }}
+                          onClick={() => toggleLocation(selectedBooking._id, 'home')}
+                        >
+                          Set Home
+                        </button>
+                        <button 
+                          className={`btn ${selectedBooking.locationType === 'clinic' ? 'btn-primary' : 'btn-secondary'}`}
+                          style={{ flex: 1, padding: '4px', fontSize: '0.8rem' }}
+                          onClick={() => toggleLocation(selectedBooking._id, 'clinic')}
+                        >
+                          Set Clinic
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedBooking.locationType !== 'clinic' && (
+                    <p style={{ marginTop: '16px' }}><strong>Assigned Nurse:</strong> {selectedBooking.nurse?.name || 'Unassigned'}</p>
+                  )}
                   <p><strong>Consent Signed:</strong> {selectedBooking.consentSigned ? 'Yes' : 'No'}</p>
                 </div>
               </div>
