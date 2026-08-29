@@ -1,13 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Stethoscope, X, Eye, ClipboardList, Activity } from 'lucide-react';
+import { Stethoscope, X, Eye, ClipboardList, Activity, Plus } from 'lucide-react';
 
 const Bookings = () => {
   const [bookings, setBookings] = useState([]);
   const [nurses, setNurses] = useState([]);
+  const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [assignModal, setAssignModal] = useState({ show: false, bookingId: null });
   const [selectedBooking, setSelectedBooking] = useState(null);
+  
+  // Offline Booking State
+  const [offlineModal, setOfflineModal] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '', phone: '', email: '', age: '', sex: 'Male',
+    serviceId: '', preferredDate: '', preferredTimeSlot: '10:00 AM',
+    street: '', city: '', state: '', pincode: '', nurseId: ''
+  });
 
   const fetchBookings = async () => {
     try {
@@ -33,10 +42,41 @@ const Bookings = () => {
     }
   };
 
+  const fetchServices = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/services`);
+      if (response.data.success) {
+        setServices(response.data.services);
+      }
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    }
+  };
+
   useEffect(() => {
     fetchBookings();
     fetchNurses();
+    fetchServices();
   }, []);
+
+  const handleOfflineSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/admin/offline-booking`, formData);
+      if (response.data.success) {
+        setOfflineModal(false);
+        setFormData({
+          name: '', phone: '', email: '', age: '', sex: 'Male',
+          serviceId: '', preferredDate: '', preferredTimeSlot: '10:00 AM',
+          street: '', city: '', state: '', pincode: '', nurseId: ''
+        });
+        fetchBookings();
+      }
+    } catch (error) {
+      console.error('Offline booking error:', error);
+      alert('Failed to create booking: ' + (error.response?.data?.message || 'Server error'));
+    }
+  };
 
   const openAssignModal = (bookingId) => {
     setAssignModal({ show: true, bookingId });
@@ -73,9 +113,17 @@ const Bookings = () => {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-3xl">Bookings Management</h1>
-        <p className="text-muted mt-2">Track customer bookings and dispatch nurses.</p>
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl">Bookings Management</h1>
+          <p className="text-muted mt-2">Track customer bookings and dispatch nurses.</p>
+        </div>
+        <button 
+          className="btn btn-primary flex items-center gap-2"
+          onClick={() => setOfflineModal(true)}
+        >
+          <Plus size={18} /> New Offline Booking
+        </button>
       </div>
 
       <div className="glass-card" style={{ padding: '0', overflowX: 'auto' }}>
@@ -271,6 +319,123 @@ const Bookings = () => {
             <div className="flex justify-end pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
               <button className="btn btn-secondary" onClick={() => setSelectedBooking(null)}>Close</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* OFFLINE BOOKING MODAL */}
+      {offlineModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 70,
+          padding: '20px'
+        }}>
+          <div className="glass-card" style={{ width: '800px', maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', background: 'var(--bg-dark)' }}>
+            <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-4" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+              <h3 className="text-2xl font-bold text-white">Create Offline Booking</h3>
+              <button onClick={() => setOfflineModal(false)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleOfflineSubmit}>
+              {/* Customer Details */}
+              <h4 className="font-bold mb-3 text-lg" style={{ color: 'var(--primary)' }}>1. Customer Details</h4>
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-sm mb-1 text-muted">Phone Number *</label>
+                  <input type="text" className="w-full form-input" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} placeholder="e.g. +919876543210" />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1 text-muted">Full Name</label>
+                  <input type="text" className="w-full form-input" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="John Doe" />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1 text-muted">Email</label>
+                  <input type="email" className="w-full form-input" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="john@example.com" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm mb-1 text-muted">Age</label>
+                    <input type="number" className="w-full form-input" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1 text-muted">Sex</label>
+                    <select className="w-full form-input" value={formData.sex} onChange={e => setFormData({...formData, sex: e.target.value})}>
+                      <option>Male</option>
+                      <option>Female</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Service & Schedule */}
+              <h4 className="font-bold mb-3 text-lg" style={{ color: 'var(--primary)' }}>2. Service & Schedule</h4>
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div style={{ gridColumn: '1 / span 2' }}>
+                  <label className="block text-sm mb-1 text-muted">Select Service *</label>
+                  <select className="w-full form-input" required value={formData.serviceId} onChange={e => setFormData({...formData, serviceId: e.target.value})}>
+                    <option value="">-- Choose a Service --</option>
+                    {services.map(s => (
+                      <option key={s._id} value={s.serviceId}>{s.title}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm mb-1 text-muted">Preferred Date</label>
+                  <input type="date" className="w-full form-input" value={formData.preferredDate} onChange={e => setFormData({...formData, preferredDate: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1 text-muted">Preferred Time</label>
+                  <select className="w-full form-input" value={formData.preferredTimeSlot} onChange={e => setFormData({...formData, preferredTimeSlot: e.target.value})}>
+                    <option>08:00 AM</option><option>10:00 AM</option><option>12:00 PM</option>
+                    <option>02:00 PM</option><option>04:00 PM</option><option>06:00 PM</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Address */}
+              <h4 className="font-bold mb-3 text-lg" style={{ color: 'var(--primary)' }}>3. Address</h4>
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div style={{ gridColumn: '1 / span 2' }}>
+                  <label className="block text-sm mb-1 text-muted">Street / Landmark</label>
+                  <input type="text" className="w-full form-input" value={formData.street} onChange={e => setFormData({...formData, street: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1 text-muted">City</label>
+                  <input type="text" className="w-full form-input" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm mb-1 text-muted">State</label>
+                    <input type="text" className="w-full form-input" value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1 text-muted">Pincode</label>
+                    <input type="text" className="w-full form-input" value={formData.pincode} onChange={e => setFormData({...formData, pincode: e.target.value})} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Assignment */}
+              <h4 className="font-bold mb-3 text-lg" style={{ color: 'var(--primary)' }}>4. Immediate Assignment (Optional)</h4>
+              <div className="mb-6">
+                <label className="block text-sm mb-1 text-muted">Assign Nurse Now</label>
+                <select className="w-full form-input" value={formData.nurseId} onChange={e => setFormData({...formData, nurseId: e.target.value})}>
+                  <option value="">-- Leave Unassigned --</option>
+                  {nurses.map(n => (
+                    <option key={n._id} value={n._id}>{n.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex justify-end pt-4 gap-4" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setOfflineModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Create Booking</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
