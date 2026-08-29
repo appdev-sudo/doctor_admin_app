@@ -14,7 +14,7 @@ const Bookings = () => {
   const [formData, setFormData] = useState({
     name: '', phone: '', email: '', age: '', sex: 'Male',
     serviceId: '', preferredDate: '', preferredTimeSlot: '10:00 AM',
-    street: '', city: '', state: '', pincode: '', nurseId: ''
+    street: '', city: '', state: '', pincode: '', nurseId: '', paymentStatus: 'pending'
   });
 
   const fetchBookings = async () => {
@@ -69,7 +69,7 @@ const Bookings = () => {
         setFormData({
           name: '', phone: '', email: '', age: '', sex: 'Male',
           serviceId: '', preferredDate: '', preferredTimeSlot: '10:00 AM',
-          street: '', city: '', state: '', pincode: '', nurseId: ''
+          street: '', city: '', state: '', pincode: '', nurseId: '', paymentStatus: 'pending'
         });
         fetchBookings();
       }
@@ -630,16 +630,25 @@ const Bookings = () => {
                 </div>
               </div>
 
-              {/* Assignment */}
-              <h4 className="font-bold mb-3 text-lg" style={{ color: 'var(--primary)' }}>4. Immediate Assignment (Optional)</h4>
-              <div className="input-group mb-6">
-                <label>Assign Nurse Now</label>
-                <select className="glass-input" value={formData.nurseId} onChange={e => setFormData({...formData, nurseId: e.target.value})}>
-                  <option value="">-- Leave Unassigned --</option>
-                  {nurses.map(n => (
-                    <option key={n._id} value={n._id}>{n.name}</option>
-                  ))}
-                </select>
+              {/* Assignment & Payment */}
+              <h4 className="font-bold mb-3 text-lg" style={{ color: 'var(--primary)' }}>4. Assignment & Payment (Optional)</h4>
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="input-group" style={{ marginBottom: 0 }}>
+                  <label>Assign Nurse Now</label>
+                  <select className="glass-input" value={formData.nurseId} onChange={e => setFormData({...formData, nurseId: e.target.value})}>
+                    <option value="">-- Leave Unassigned --</option>
+                    {nurses.map(n => (
+                      <option key={n._id} value={n._id}>{n.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="input-group" style={{ marginBottom: 0 }}>
+                  <label>Payment Status</label>
+                  <select className="glass-input" value={formData.paymentStatus} onChange={e => setFormData({...formData, paymentStatus: e.target.value})}>
+                    <option value="pending">Pending</option>
+                    <option value="paid">Completed (Paid)</option>
+                  </select>
+                </div>
               </div>
 
               <div className="flex justify-end pt-4 gap-4" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
