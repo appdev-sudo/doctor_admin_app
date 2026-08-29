@@ -45,7 +45,9 @@ const Bookings = () => {
   const fetchServices = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/services`);
-      if (response.data.success) {
+      if (Array.isArray(response.data)) {
+        setServices(response.data);
+      } else if (response.data.success) {
         setServices(response.data.services);
       }
     } catch (error) {
@@ -345,24 +347,24 @@ const Bookings = () => {
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div>
                   <label className="block text-sm mb-1 text-muted">Phone Number *</label>
-                  <input type="text" className="w-full form-input" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} placeholder="e.g. +919876543210" />
+                  <input type="text" className="w-full glass-input" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} placeholder="e.g. +919876543210" />
                 </div>
                 <div>
                   <label className="block text-sm mb-1 text-muted">Full Name</label>
-                  <input type="text" className="w-full form-input" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="John Doe" />
+                  <input type="text" className="w-full glass-input" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="John Doe" />
                 </div>
                 <div>
                   <label className="block text-sm mb-1 text-muted">Email</label>
-                  <input type="email" className="w-full form-input" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="john@example.com" />
+                  <input type="email" className="w-full glass-input" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="john@example.com" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm mb-1 text-muted">Age</label>
-                    <input type="number" className="w-full form-input" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} />
+                    <input type="number" className="w-full glass-input" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} />
                   </div>
                   <div>
                     <label className="block text-sm mb-1 text-muted">Sex</label>
-                    <select className="w-full form-input" value={formData.sex} onChange={e => setFormData({...formData, sex: e.target.value})}>
+                    <select className="w-full glass-input" value={formData.sex} onChange={e => setFormData({...formData, sex: e.target.value})}>
                       <option>Male</option>
                       <option>Female</option>
                       <option>Other</option>
@@ -376,7 +378,7 @@ const Bookings = () => {
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div style={{ gridColumn: '1 / span 2' }}>
                   <label className="block text-sm mb-1 text-muted">Select Service *</label>
-                  <select className="w-full form-input" required value={formData.serviceId} onChange={e => setFormData({...formData, serviceId: e.target.value})}>
+                  <select className="w-full glass-input" required value={formData.serviceId} onChange={e => setFormData({...formData, serviceId: e.target.value})}>
                     <option value="">-- Choose a Service --</option>
                     {services.map(s => (
                       <option key={s._id} value={s.serviceId}>{s.title}</option>
