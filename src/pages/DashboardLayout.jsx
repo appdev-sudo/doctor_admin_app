@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LayoutDashboard, Users, CalendarDays, LogOut, Activity, Layers } from 'lucide-react';
-import logo from '../assets/logo-04.png';
+import logo from '../assets/logo-03.png';
 const DashboardLayout = () => {
   const { admin, logout } = useAuth();
   const navigate = useNavigate();
