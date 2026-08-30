@@ -10,9 +10,9 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if token exists in localStorage
-    const token = localStorage.getItem('adminToken');
-    const adminData = localStorage.getItem('adminData');
+    // Check if token exists in sessionStorage
+    const token = sessionStorage.getItem('adminToken');
+    const adminData = sessionStorage.getItem('adminData');
     
     if (token && adminData) {
       setAdmin(JSON.parse(adminData));
@@ -25,8 +25,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/admin/login`, { email, password });
       if (response.data.success) {
-        localStorage.setItem('adminToken', response.data.token);
-        localStorage.setItem('adminData', JSON.stringify(response.data.admin));
+        sessionStorage.setItem('adminToken', response.data.token);
+        sessionStorage.setItem('adminData', JSON.stringify(response.data.admin));
         setAdmin(response.data.admin);
         axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
         return true;
@@ -39,8 +39,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminData');
+    sessionStorage.removeItem('adminToken');
+    sessionStorage.removeItem('adminData');
     setAdmin(null);
     delete axios.defaults.headers.common['Authorization'];
   };

@@ -239,6 +239,21 @@ const Bookings = () => {
     }
   };
 
+  const updatePaymentStatus = async (bookingId, newStatus) => {
+    try {
+      const res = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/admin/bookings/${bookingId}/payment`, { paymentStatus: newStatus });
+      if (res.data.success) {
+        if (selectedBooking && selectedBooking._id === bookingId) {
+          setSelectedBooking(prev => ({ ...prev, paymentStatus: newStatus }));
+        }
+        fetchBookings();
+      }
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      alert('Error updating payment status');
+    }
+  };
+
   const getStatusColor = (status) => {
     switch(status) {
       case 'pending': return { bg: 'rgba(245, 158, 11, 0.2)', color: '#F59E0B' };
@@ -518,8 +533,34 @@ const Bookings = () => {
                   {selectedBooking.startOtp && <p style={{ marginTop: '8px' }}><strong>Start OTP:</strong> <span style={{ color: '#F59E0B', letterSpacing: '2px', fontWeight: 'bold' }}>{selectedBooking.startOtp}</span></p>}
                   {selectedBooking.endOtp && <p style={{ marginTop: '8px' }}><strong>End OTP:</strong> <span style={{ color: '#60A5FA', letterSpacing: '2px', fontWeight: 'bold' }}>{selectedBooking.endOtp}</span></p>}
                   
-                  <p style={{ marginTop: '8px' }}><strong>Payment:</strong> <span style={{ color: selectedBooking.paymentStatus === 'paid' ? '#10B981' : '#F59E0B' }}>{selectedBooking.paymentStatus.toUpperCase()}</span></p>
-                  {selectedBooking.paymentId && <p><strong>Payment ID:</strong> {selectedBooking.paymentId}</p>}
+                  <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                    <p style={{ marginBottom: '8px' }}><strong>Payment:</strong> <span style={{ color: selectedBooking.paymentStatus === 'paid' ? '#10B981' : '#F59E0B' }}>{selectedBooking.paymentStatus.toUpperCase()}</span></p>
+                    <div className="flex gap-2">
+                      <button
+                        className={`btn ${selectedBooking.paymentStatus === 'paid' ? 'btn-primary' : 'btn-secondary'}`}
+                        style={{ flex: 1, padding: '4px 8px', fontSize: '0.8rem', ...(selectedBooking.paymentStatus === 'paid' ? { background: '#10B981', borderColor: '#10B981' } : {}) }}
+                        onClick={() => updatePaymentStatus(selectedBooking._id, 'paid')}
+                        disabled={selectedBooking.paymentStatus === 'paid'}
+                      >
+                        ✓ Mark as Paid
+                      </button>
+                      <button
+                        className="btn btn-secondary"
+                        style={{ flex: 1, padding: '4px 8px', fontSize: '0.8rem' }}
+                        onClick={() => updatePaymentStatus(selectedBooking._id, 'pending')}
+                        disabled={selectedBooking.paymentStatus === 'pending'}
+                      >
+                        ↩ Mark Pending
+                      </button>
+                    </div>
+                  </div>
+                  {selectedBooking.paymentId && <p style={{ marginTop: '8px' }}><strong>Payment ID:</strong> {selectedBooking.paymentId}</p>}
+                  {selectedBooking.adminNote && (
+                    <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(139, 92, 246, 0.1)', borderRadius: '8px', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+                      <p style={{ fontSize: '0.8rem', color: '#8B5CF6', marginBottom: '4px', fontWeight: 'bold' }}>📝 Admin Note</p>
+                      <p style={{ color: 'var(--text-light)' }}>{selectedBooking.adminNote}</p>
+                    </div>
+                  )}
                   
                   <div style={{ marginTop: '16px', padding: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
                     <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
