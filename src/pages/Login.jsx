@@ -4,14 +4,24 @@ import { useAuth } from '../context/AuthContext';
 import { ShieldCheck } from 'lucide-react';
 
 const Login = () => {
-  const [email, setEmail] = useState(import.meta.env.VITE_ADMIN_EMAIL || '');
-  const [password, setPassword] = useState(import.meta.env.VITE_ADMIN_PASSWORD || '');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Explicitly match with the values in env before allowing login
+    if (
+      email !== import.meta.env.VITE_ADMIN_EMAIL || 
+      password !== import.meta.env.VITE_ADMIN_PASSWORD
+    ) {
+      setError('Invalid credentials or server error.');
+      return;
+    }
+
     try {
       await login(email, password);
       navigate('/');
