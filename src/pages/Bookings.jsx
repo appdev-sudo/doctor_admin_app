@@ -2,6 +2,11 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Stethoscope, X, Eye, ClipboardList, Activity, Plus } from 'lucide-react';
 
+const timeOptions = [
+  "12:00 AM", "01:00 AM", "02:00 AM", "03:00 AM", "04:00 AM", "05:00 AM", "06:00 AM", "07:00 AM", "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
+  "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM", "06:00 PM", "07:00 PM", "08:00 PM", "09:00 PM", "10:00 PM", "11:00 PM"
+];
+
 const Bookings = () => {
   const [bookings, setBookings] = useState([]);
   const [nurses, setNurses] = useState([]);
@@ -622,23 +627,13 @@ const Bookings = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="input-group">
                   <label>Date</label>
-                  <input type="date" name="date" className="glass-input" defaultValue={scheduleModal.booking.preferredDate ? new Date(scheduleModal.booking.preferredDate).toISOString().split('T')[0] : ''} />
+                  <input type="date" name="date" className="glass-input" defaultValue={scheduleModal.booking.preferredDate ? new Date(scheduleModal.booking.preferredDate).toISOString().split('T')[0] : ''} onClick={(e) => { try { e.target.showPicker(); } catch(err) {} }} />
                 </div>
                 <div className="input-group">
                   <label>Time</label>
                   <select name="time" className="glass-input" defaultValue={scheduleModal.booking.preferredTimeSlot || ''}>
                     <option value="">Any Time</option>
-                    <option>08:00 AM</option>
-                    <option>09:00 AM</option>
-                    <option>10:00 AM</option>
-                    <option>11:00 AM</option>
-                    <option>12:00 PM</option>
-                    <option>01:00 PM</option>
-                    <option>02:00 PM</option>
-                    <option>03:00 PM</option>
-                    <option>04:00 PM</option>
-                    <option>05:00 PM</option>
-                    <option>06:00 PM</option>
+                    {timeOptions.map(t => <option key={t}>{t}</option>)}
                   </select>
                 </div>
               </div>
@@ -749,13 +744,12 @@ const Bookings = () => {
                 </div>
                 <div className="input-group" style={{ marginBottom: 0 }}>
                   <label>Preferred Date</label>
-                  <input type="date" className="glass-input" value={formData.preferredDate} onChange={e => setFormData({...formData, preferredDate: e.target.value})} />
+                  <input type="date" className="glass-input" value={formData.preferredDate} onChange={e => setFormData({...formData, preferredDate: e.target.value})} onClick={(e) => { try { e.target.showPicker(); } catch(err) {} }} />
                 </div>
                 <div className="input-group" style={{ marginBottom: 0 }}>
                   <label>Preferred Time</label>
                   <select className="glass-input" value={formData.preferredTimeSlot} onChange={e => setFormData({...formData, preferredTimeSlot: e.target.value})}>
-                    <option>08:00 AM</option><option>10:00 AM</option><option>12:00 PM</option>
-                    <option>02:00 PM</option><option>04:00 PM</option><option>06:00 PM</option>
+                    {timeOptions.map(t => <option key={t}>{t}</option>)}
                   </select>
                 </div>
               </div>
