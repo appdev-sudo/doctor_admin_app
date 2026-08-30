@@ -12,16 +12,6 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Explicitly match with the values in env before allowing login
-    if (
-      email !== import.meta.env.VITE_ADMIN_EMAIL || 
-      password !== import.meta.env.VITE_ADMIN_PASSWORD
-    ) {
-      setError('Invalid credentials or server error.');
-      return;
-    }
-
     try {
       await login(email, password);
       navigate('/');
