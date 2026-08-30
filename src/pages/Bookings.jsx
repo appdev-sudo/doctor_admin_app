@@ -11,6 +11,8 @@ const Bookings = () => {
   const [bookings, setBookings] = useState([]);
   const [nurses, setNurses] = useState([]);
   const [services, setServices] = useState([]);
+  const [customServices, setCustomServices] = useState([]);
+  const [newCustomServiceTitle, setNewCustomServiceTitle] = useState('');
   const [loading, setLoading] = useState(true);
   const [assignModal, setAssignModal] = useState({ show: false, bookingId: null });
   const [scheduleModal, setScheduleModal] = useState({ show: false, booking: null });
@@ -23,7 +25,7 @@ const Bookings = () => {
     name: '', phone: '', email: '', age: '', sex: 'Male',
     serviceId: '', preferredDate: '', preferredTimeSlot: '10:00 AM',
     street: '', city: '', state: '', pincode: '', nurseId: '', paymentStatus: 'pending',
-    locationType: 'home', clinicLocation: 'Vytalyou Powai'
+    locationType: 'home', clinicLocation: 'Vytalyou Powai', adminNote: ''
   });
 
   const fetchBookings = async () => {
@@ -63,10 +65,36 @@ const Bookings = () => {
     }
   };
 
+  const fetchCustomServices = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/custom-services`);
+      if (response.data.success) {
+        setCustomServices(response.data.services);
+      }
+    } catch (error) {
+      console.error('Error fetching custom services:', error);
+    }
+  };
+
+  const handleCreateCustomService = async () => {
+    if (!newCustomServiceTitle.trim()) return;
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/admin/custom-services`, { title: newCustomServiceTitle.trim() });
+      if (response.data.success) {
+        setNewCustomServiceTitle('');
+        fetchCustomServices();
+      }
+    } catch (error) {
+      console.error('Error creating custom service:', error);
+      alert('Failed to create custom service: ' + (error.response?.data?.message || 'Server error'));
+    }
+  };
+
   useEffect(() => {
     fetchBookings();
     fetchNurses();
     fetchServices();
+    fetchCustomServices();
   }, []);
 
   const handleOfflineSubmit = async (e) => {
@@ -79,7 +107,7 @@ const Bookings = () => {
           name: '', phone: '', email: '', age: '', sex: 'Male',
           serviceId: '', preferredDate: '', preferredTimeSlot: '10:00 AM',
           street: '', city: '', state: '', pincode: '', nurseId: '', paymentStatus: 'pending',
-          locationType: 'home', clinicLocation: 'Vytalyou Powai'
+          locationType: 'home', clinicLocation: 'Vytalyou Powai', adminNote: ''
         });
         fetchBookings();
       }
@@ -275,7 +303,7 @@ const Bookings = () => {
       </div>
 
       <div className="flex gap-2 mb-4 overflow-x-auto" style={{ paddingBottom: '4px' }}>
-        {['All', 'Home', 'Powai', 'Juhu', 'Worli'].map(tab => (
+        {['All', 'Home', 'Powai', 'Juhu', 'Worli', 'Admin Custom'].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -284,6 +312,7 @@ const Bookings = () => {
           >
             {tab === 'All' ? 'All Bookings' : 
              tab === 'Home' ? 'Home Services' : 
+             tab === 'Admin Custom' ? 'Admin Custom Services' :
              `Vytalyou ${tab}`}
           </button>
         ))}
@@ -303,6 +332,10 @@ const Bookings = () => {
           </thead>
           <tbody>
             {bookings.filter(booking => {
+              const isCustom = customServices.some(cs => cs.title === booking.serviceId);
+              if (activeTab === 'Admin Custom') return isCustom;
+              if (isCustom) return false;
+
               if (activeTab === 'All') return true;
               if (activeTab === 'Home') return booking.locationType === 'home';
               if (activeTab === 'Powai') return booking.locationType === 'clinic' && booking.clinicLocation === 'Vytalyou Powai';
@@ -311,10 +344,14 @@ const Bookings = () => {
               return true;
             }).length === 0 && (
               <tr>
-                <td colSpan="6" className="text-center py-8 text-muted">No bookings found for {activeTab === 'All' ? 'all locations' : activeTab === 'Home' ? 'home services' : `Vytalyou ${activeTab}`}.</td>
+                <td colSpan="6" className="text-center py-8 text-muted">No bookings found for {activeTab === 'All' ? 'all locations' : activeTab === 'Home' ? 'home services' : activeTab === 'Admin Custom' ? 'admin custom services' : `Vytalyou ${activeTab}`}.</td>
               </tr>
             )}
             {bookings.filter(booking => {
+              const isCustom = customServices.some(cs => cs.title === booking.serviceId);
+              if (activeTab === 'Admin Custom') return isCustom;
+              if (isCustom) return false;
+
               if (activeTab === 'All') return true;
               if (activeTab === 'Home') return booking.locationType === 'home';
               if (activeTab === 'Powai') return booking.locationType === 'clinic' && booking.clinicLocation === 'Vytalyou Powai';
@@ -735,13 +772,47 @@ const Bookings = () => {
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="input-group" style={{ gridColumn: '1 / span 2', marginBottom: 0 }}>
                   <label>Select Service *</label>
-                  <select className="glass-input" required value={formData.serviceId} onChange={e => setFormData({...formData, serviceId: e.target.value})}>
-                    <option value="">-- Choose a Service --</option>
-                    {services.map(s => (
-                      <option key={s._id} value={s.serviceId}>{s.title}</option>
-                    ))}
-                  </select>
+                  <div className="flex gap-2">
+                    <select className="glass-input" required value={formData.serviceId} onChange={e => setFormData({...formData, serviceId: e.target.value})}>
+                      <option value="">-- Choose a Service --</option>
+                      <optgroup label="API Services">
+                        {services.map(s => (
+                          <option key={s._id} value={s.serviceId}>{s.title}</option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Admin Privilege Services">
+                        {customServices.map(s => (
+                          <option key={s._id || s.title} value={s.title}>{s.title}</option>
+                        ))}
+                      </optgroup>
+                    </select>
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    <input 
+                      type="text" 
+                      className="glass-input" 
+                      placeholder="New custom service name..." 
+                      value={newCustomServiceTitle} 
+                      onChange={e => setNewCustomServiceTitle(e.target.value)} 
+                    />
+                    <button type="button" className="btn btn-secondary" onClick={handleCreateCustomService}>
+                      <Plus size={16} /> Add Custom
+                    </button>
+                  </div>
                 </div>
+                {/* Admin Note field */}
+                {customServices.some(s => s.title === formData.serviceId) && (
+                  <div className="input-group" style={{ gridColumn: '1 / span 2', marginBottom: 0, marginTop: '16px' }}>
+                    <label>Admin Note (for custom service)</label>
+                    <textarea 
+                      className="glass-input" 
+                      rows="2"
+                      value={formData.adminNote}
+                      onChange={e => setFormData({...formData, adminNote: e.target.value})}
+                      placeholder="e.g. Need to adjust dosage..."
+                    />
+                  </div>
+                )}
                 <div className="input-group" style={{ marginBottom: 0 }}>
                   <label>Preferred Date</label>
                   <input type="date" className="glass-input" value={formData.preferredDate} onChange={e => setFormData({...formData, preferredDate: e.target.value})} onClick={(e) => { try { e.target.showPicker(); } catch(err) {} }} />
