@@ -4,8 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { ShieldCheck } from 'lucide-react';
 
 const Login = () => {
-  const [email, setEmail] = useState('admin@vytalyou.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState(import.meta.env.VITE_ADMIN_EMAIL || '');
+  const [password, setPassword] = useState(import.meta.env.VITE_ADMIN_PASSWORD || '');
   const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
