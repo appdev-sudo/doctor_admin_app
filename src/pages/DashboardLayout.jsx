@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LayoutDashboard, Users, CalendarDays, LogOut, Activity, Layers } from 'lucide-react';
-
+import logo from '../assets/logo-04.png';
 const DashboardLayout = () => {
   const { admin, logout } = useAuth();
   const navigate = useNavigate();
@@ -31,8 +31,7 @@ const DashboardLayout = () => {
     <div className="app-container">
       <div className="sidebar glass-panel" style={{ margin: '16px', borderRadius: '16px', height: 'calc(100vh - 32px)' }}>
         <div className="flex items-center gap-2 mb-6" style={{ padding: '0 8px' }}>
-          <Activity color="var(--primary)" size={32} />
-          <h2 className="text-2xl font-bold">VytalAdmin</h2>
+          <img src={logo} alt="VytalYou Logo" style={{ height: '46px', width: 'auto' }} />
         </div>
         
         <div style={{ padding: '0 8px', marginBottom: '32px' }}>
