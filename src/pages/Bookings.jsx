@@ -13,6 +13,7 @@ const Bookings = () => {
   const [offlineModal, setOfflineModal] = useState(false);
   const [editModal, setEditModal] = useState({ show: false, booking: null });
   const [userSuggestions, setUserSuggestions] = useState([]);
+  const [activeTab, setActiveTab] = useState('All');
   const [formData, setFormData] = useState({
     name: '', phone: '', email: '', age: '', sex: 'Male',
     serviceId: '', preferredDate: '', preferredTimeSlot: '10:00 AM',
@@ -268,6 +269,21 @@ const Bookings = () => {
         </button>
       </div>
 
+      <div className="flex gap-2 mb-4 overflow-x-auto" style={{ paddingBottom: '4px' }}>
+        {['All', 'Home', 'Powai', 'Juhu', 'Worli'].map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`btn ${activeTab === tab ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ padding: '8px 16px', borderRadius: '20px', whiteSpace: 'nowrap' }}
+          >
+            {tab === 'All' ? 'All Bookings' : 
+             tab === 'Home' ? 'Home Services' : 
+             `Vytalyou ${tab}`}
+          </button>
+        ))}
+      </div>
+
       <div className="glass-card" style={{ padding: '0', overflowX: 'auto' }}>
         <table className="glass-table">
           <thead>
@@ -281,9 +297,26 @@ const Bookings = () => {
             </tr>
           </thead>
           <tbody>
-            {bookings.length === 0 ? (
-              <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No bookings found</td></tr>
-            ) : bookings.map(booking => {
+            {bookings.filter(booking => {
+              if (activeTab === 'All') return true;
+              if (activeTab === 'Home') return booking.locationType === 'home';
+              if (activeTab === 'Powai') return booking.locationType === 'clinic' && booking.clinicLocation === 'Vytalyou Powai';
+              if (activeTab === 'Juhu') return booking.locationType === 'clinic' && booking.clinicLocation === 'Vytalyou Juhu';
+              if (activeTab === 'Worli') return booking.locationType === 'clinic' && booking.clinicLocation === 'Vytalyou Worli';
+              return true;
+            }).length === 0 && (
+              <tr>
+                <td colSpan="6" className="text-center py-8 text-muted">No bookings found for {activeTab === 'All' ? 'all locations' : activeTab === 'Home' ? 'home services' : `Vytalyou ${activeTab}`}.</td>
+              </tr>
+            )}
+            {bookings.filter(booking => {
+              if (activeTab === 'All') return true;
+              if (activeTab === 'Home') return booking.locationType === 'home';
+              if (activeTab === 'Powai') return booking.locationType === 'clinic' && booking.clinicLocation === 'Vytalyou Powai';
+              if (activeTab === 'Juhu') return booking.locationType === 'clinic' && booking.clinicLocation === 'Vytalyou Juhu';
+              if (activeTab === 'Worli') return booking.locationType === 'clinic' && booking.clinicLocation === 'Vytalyou Worli';
+              return true;
+            }).map(booking => {
               const statusStyle = getStatusColor(booking.status);
               return (
                 <tr key={booking._id}>
