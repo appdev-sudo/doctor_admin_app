@@ -599,44 +599,57 @@ const Subscriptions = () => {
             
             <div style={{ marginBottom: '16px' }}>
               <p style={{ marginBottom: '8px' }}><strong>Service:</strong> {paymentModal.subscription.serviceTitle}</p>
-              <p><strong>Total Amount:</strong> Rs. {paymentModal.subscription.totalAmount || 0}</p>
-              <p><strong>Amount Paid:</strong> Rs. {paymentModal.subscription.amountPaid || 0}</p>
-              <p><strong>Amount Left:</strong> Rs. {Math.max(0, (paymentModal.subscription.totalAmount || 0) - (paymentModal.subscription.amountPaid || 0))}</p>
-              <p style={{ marginTop: '4px' }}><strong>Status:</strong> <span style={{ color: paymentModal.subscription.paymentStatus === 'paid' ? '#10B981' : '#F59E0B' }}>{paymentModal.subscription.paymentStatus.toUpperCase()}</span></p>
-            </div>
-
-            {paymentModal.subscription.paymentStatus !== 'paid' && (
-              <div className="flex flex-col gap-2 mt-4">
-                <label>Add Payment (Rs.)</label>
-                <div className="flex gap-2">
+              
+              <div className="flex flex-col gap-3 mt-4">
+                <div>
+                  <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Total Amount (Rs.)</label>
                   <input 
                     type="number" 
-                    placeholder="e.g. 1000" 
+                    id="edit-sub-total"
                     className="glass-input" 
-                    id="sub-add-payment"
-                    style={{ marginBottom: 0, flex: 1 }}
+                    defaultValue={paymentModal.subscription.totalAmount || 0}
+                    style={{ marginBottom: '0' }}
                   />
-                  <button
-                    className="btn btn-primary"
-                    style={{ background: '#10B981', borderColor: '#10B981', padding: '0 16px' }}
-                    onClick={() => {
-                      const input = document.getElementById('sub-add-payment');
-                      const val = Number(input.value);
-                      if (val > 0) {
-                        updateSubscriptionPayment(paymentModal.subscription._id, { amountToAdd: val });
-                        input.value = '';
-                      }
-                    }}
-                  >
-                    Add
-                  </button>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Amount Paid (Rs.)</label>
+                  <input 
+                    type="number" 
+                    id="edit-sub-paid"
+                    className="glass-input" 
+                    defaultValue={paymentModal.subscription.amountPaid || 0}
+                    style={{ marginBottom: '0' }}
+                  />
                 </div>
               </div>
-            )}
+
+              <div className="flex gap-2 mt-4">
+                <button
+                  className="btn btn-primary flex-1"
+                  onClick={() => {
+                    const totalVal = Number(document.getElementById('edit-sub-total').value);
+                    const paidVal = Number(document.getElementById('edit-sub-paid').value);
+                    updateSubscriptionPayment(paymentModal.subscription._id, { 
+                      setTotalAmount: totalVal,
+                      setAmountPaid: paidVal
+                    });
+                  }}
+                >
+                  Save Payment Update
+                </button>
+              </div>
+
+              <p style={{ marginTop: '16px', fontSize: '0.9rem' }}>
+                <strong>Amount Left:</strong> Rs. {Math.max(0, (paymentModal.subscription.totalAmount || 0) - (paymentModal.subscription.amountPaid || 0))}
+              </p>
+              <p style={{ marginTop: '4px', fontSize: '0.9rem' }}>
+                <strong>Status:</strong> <span style={{ color: paymentModal.subscription.paymentStatus === 'paid' ? '#10B981' : '#F59E0B' }}>{paymentModal.subscription.paymentStatus.toUpperCase()}</span>
+              </p>
+            </div>
 
             {paymentModal.subscription.paymentStatus === 'paid' && (
               <button
-                className="btn btn-secondary mt-4 w-full"
+                className="btn btn-secondary mt-2 w-full"
                 onClick={() => updateSubscriptionPayment(paymentModal.subscription._id, { paymentStatus: 'pending' })}
               >
                 ↩ Mark Pending (Override)

@@ -555,36 +555,48 @@ const Bookings = () => {
                   
                   <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
                     <div style={{ marginBottom: '12px' }}>
-                      <p><strong>Total Amount:</strong> Rs. {selectedBooking.totalAmount || 0}</p>
-                      <p><strong>Amount Paid:</strong> Rs. {selectedBooking.amountPaid || 0}</p>
-                      <p><strong>Amount Left:</strong> Rs. {Math.max(0, (selectedBooking.totalAmount || 0) - (selectedBooking.amountPaid || 0))}</p>
-                      <p style={{ marginTop: '4px' }}><strong>Payment Status:</strong> <span style={{ color: selectedBooking.paymentStatus === 'paid' ? '#10B981' : '#F59E0B' }}>{selectedBooking.paymentStatus.toUpperCase()}</span></p>
-                    </div>
-                    {selectedBooking.paymentStatus !== 'paid' && (
-                      <div className="flex gap-2 items-center">
-                        <input 
-                          type="number" 
-                          placeholder="Amount to add" 
-                          className="glass-input" 
-                          style={{ marginBottom: 0, flex: 1, padding: '4px 8px' }}
-                          id={`add-payment-${selectedBooking._id}`}
-                        />
+                      <div className="flex flex-col gap-2 mt-2">
+                        <div className="flex gap-2 items-center">
+                          <label style={{ width: '100px', fontSize: '0.8rem' }}>Total (Rs.)</label>
+                          <input 
+                            type="number" 
+                            id={`edit-booking-total-${selectedBooking._id}`}
+                            className="glass-input" 
+                            defaultValue={selectedBooking.totalAmount || 0}
+                            style={{ marginBottom: 0, padding: '4px 8px', flex: 1 }}
+                          />
+                        </div>
+                        <div className="flex gap-2 items-center">
+                          <label style={{ width: '100px', fontSize: '0.8rem' }}>Paid (Rs.)</label>
+                          <input 
+                            type="number" 
+                            id={`edit-booking-paid-${selectedBooking._id}`}
+                            className="glass-input" 
+                            defaultValue={selectedBooking.amountPaid || 0}
+                            style={{ marginBottom: 0, padding: '4px 8px', flex: 1 }}
+                          />
+                        </div>
                         <button
-                          className="btn btn-primary"
+                          className="btn btn-primary mt-1"
                           style={{ padding: '4px 12px', fontSize: '0.8rem', background: '#10B981', borderColor: '#10B981' }}
                           onClick={() => {
-                            const input = document.getElementById(`add-payment-${selectedBooking._id}`);
-                            const val = Number(input.value);
-                            if (val > 0) {
-                              updatePayment(selectedBooking._id, { amountToAdd: val });
-                              input.value = '';
-                            }
+                            const totalVal = Number(document.getElementById(`edit-booking-total-${selectedBooking._id}`).value);
+                            const paidVal = Number(document.getElementById(`edit-booking-paid-${selectedBooking._id}`).value);
+                            updatePayment(selectedBooking._id, { 
+                              setTotalAmount: totalVal,
+                              setAmountPaid: paidVal 
+                            });
                           }}
                         >
-                          Add Payment
+                          Save Payment Update
                         </button>
                       </div>
-                    )}
+                      
+                      <div className="mt-3">
+                        <p><strong>Amount Left:</strong> Rs. {Math.max(0, (selectedBooking.totalAmount || 0) - (selectedBooking.amountPaid || 0))}</p>
+                        <p style={{ marginTop: '4px' }}><strong>Payment Status:</strong> <span style={{ color: selectedBooking.paymentStatus === 'paid' ? '#10B981' : '#F59E0B' }}>{selectedBooking.paymentStatus.toUpperCase()}</span></p>
+                      </div>
+                    </div>
                     {selectedBooking.paymentStatus === 'paid' && (
                       <button
                         className="btn btn-secondary mt-2 w-full"
