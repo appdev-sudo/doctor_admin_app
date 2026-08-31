@@ -151,6 +151,24 @@ const Bookings = () => {
     setUserSuggestions([]);
   };
 
+  const handleServiceChange = (serviceId) => {
+    const service = services.find(s => s.serviceId === serviceId);
+    let autoTotal = formData.totalAmount;
+    
+    if (service && service.price) {
+      const parsed = Number(String(service.price).replace(/[^0-9.-]+/g, ''));
+      if (!isNaN(parsed) && parsed > 0) {
+        autoTotal = parsed;
+      }
+    }
+    
+    setFormData({
+      ...formData,
+      serviceId,
+      totalAmount: autoTotal
+    });
+  };
+
   const deleteBooking = async (bookingId) => {
     if (!window.confirm("Are you sure you want to permanently delete this booking?")) return;
     try {
