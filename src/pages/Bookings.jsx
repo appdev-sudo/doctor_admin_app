@@ -837,7 +837,7 @@ const Bookings = () => {
                 <div className="input-group" style={{ gridColumn: '1 / span 2', marginBottom: 0 }}>
                   <label>Select Service *</label>
                   <div className="flex gap-2">
-                    <select className="glass-input" required value={formData.serviceId} onChange={e => setFormData({...formData, serviceId: e.target.value})}>
+                    <select className="glass-input" required value={formData.serviceId} onChange={e => handleServiceChange(e.target.value)}>
                       <option value="">-- Choose a Service --</option>
                       <optgroup label="API Services">
                         {services.map(s => (
@@ -863,6 +863,30 @@ const Bookings = () => {
                       <Plus size={16} /> Add Custom
                     </button>
                   </div>
+                  {/* Pricing Hint */}
+                  {(() => {
+                    const selSvc = services.find(s => s.serviceId === formData.serviceId);
+                    if (!selSvc) return null;
+                    const pricingSec = selSvc.sections?.find(sec => sec.title === 'Pricing');
+                    if (pricingSec && pricingSec.items && pricingSec.items.length > 0) {
+                      return (
+                        <div style={{ marginTop: '8px', padding: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          <strong>Pricing Options:</strong>
+                          <ul style={{ paddingLeft: '16px', marginTop: '4px', marginBottom: 0 }}>
+                            {pricingSec.items.map((it, i) => <li key={i}>{it}</li>)}
+                          </ul>
+                        </div>
+                      );
+                    }
+                    if (selSvc.price) {
+                      return (
+                        <div style={{ marginTop: '8px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          Base Price: <strong>{selSvc.price}</strong>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
                 {/* Admin Note field */}
                 {customServices.some(s => s.title === formData.serviceId) && (
@@ -953,7 +977,18 @@ const Bookings = () => {
                   <input type="number" className="glass-input" placeholder="e.g. 5000" value={formData.totalAmount} onChange={e => setFormData({...formData, totalAmount: e.target.value})} />
                 </div>
                 <div className="input-group" style={{ marginBottom: 0 }}>
-                  <label>Amount Paid Now (Rs.)</label>
+                  <label className="flex justify-between items-center">
+                    <span>Amount Paid Now (Rs.)</span>
+                    {formData.totalAmount > 0 && (
+                      <button 
+                        type="button" 
+                        style={{ background: 'none', border: 'none', color: '#10B981', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline' }}
+                        onClick={() => setFormData({...formData, amountPaid: formData.totalAmount})}
+                      >
+                        Paid Fully
+                      </button>
+                    )}
+                  </label>
                   <input type="number" className="glass-input" placeholder="e.g. 1000" value={formData.amountPaid} onChange={e => setFormData({...formData, amountPaid: e.target.value})} />
                 </div>
               </div>
