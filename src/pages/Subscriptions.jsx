@@ -111,6 +111,17 @@ const Subscriptions = () => {
     }
   };
 
+  const deleteSubscription = async (subscriptionId) => {
+    if (!window.confirm("WARNING: Are you sure you want to delete this subscription? This will also archive and delete ALL of its child sessions permanently!")) return;
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/admin/subscriptions/${subscriptionId}`);
+      fetchSubscriptions();
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('Error deleting subscription: ' + (error.response?.data?.message || 'Server error'));
+    }
+  };
+
   const updateSchedule = async (e) => {
     e.preventDefault();
     try {
@@ -213,26 +224,38 @@ const Subscriptions = () => {
                         <span style={{ color: sub.paymentStatus === 'paid' ? '#10B981' : '#F59E0B' }}>
                           {sub.paymentStatus.toUpperCase()}
                         </span>
-                        <button
-                          className="btn btn-secondary"
-                          style={{ padding: '2px 8px', fontSize: '0.7rem' }}
-                          onClick={(e) => { e.stopPropagation(); setPaymentModal({ show: true, subscription: sub }); }}
-                        >
-                          Manage Payment
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            className="btn btn-secondary"
+                            style={{ padding: '2px 8px', fontSize: '0.7rem' }}
+                            onClick={(e) => { e.stopPropagation(); setPaymentModal({ show: true, subscription: sub }); }}
+                          >
+                            Manage Payment
+                          </button>
+                        </div>
                       </div>
                     </td>
                     <td>
-                      <span style={{ 
-                        padding: '4px 12px', 
-                        borderRadius: '20px', 
-                        fontSize: '0.85rem',
-                        backgroundColor: sub.status === 'active' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(16, 185, 129, 0.2)',
-                        color: sub.status === 'active' ? '#3B82F6' : '#10B981',
-                        textTransform: 'capitalize'
-                      }}>
-                        {sub.status}
-                      </span>
+                      <div className="flex items-center justify-between">
+                        <span style={{ 
+                          padding: '4px 12px', 
+                          borderRadius: '20px', 
+                          fontSize: '0.85rem',
+                          backgroundColor: sub.status === 'active' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                          color: sub.status === 'active' ? '#3B82F6' : '#10B981',
+                          textTransform: 'capitalize'
+                        }}>
+                          {sub.status}
+                        </span>
+                        <button
+                          className="btn btn-secondary"
+                          style={{ padding: '4px', background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+                          onClick={(e) => { e.stopPropagation(); deleteSubscription(sub._id); }}
+                          title="Delete Subscription"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                   

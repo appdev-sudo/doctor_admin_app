@@ -7,6 +7,7 @@ import Overview from './pages/Overview';
 import Nurses from './pages/Nurses';
 import Bookings from './pages/Bookings';
 import Subscriptions from './pages/Subscriptions';
+import ArchivedRecords from './pages/ArchivedRecords';
 import './index.css';
 
 const ProtectedRoute = ({ children }) => {
@@ -30,6 +31,7 @@ const App = () => {
             <Route path="nurses" element={<Nurses />} />
             <Route path="bookings" element={<Bookings />} />
             <Route path="subscriptions" element={<Subscriptions />} />
+            <Route path="archives" element={<ArchivedRecords />} />
           </Route>
         </Routes>
       </BrowserRouter>

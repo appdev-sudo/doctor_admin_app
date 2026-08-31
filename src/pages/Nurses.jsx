@@ -20,6 +20,20 @@ const Nurses = () => {
     }
   };
 
+  const deleteNurse = async (nurseId) => {
+    if (!window.confirm("WARNING: Are you sure you want to delete this nurse? This will permanently archive and delete their record.")) return;
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/admin/nurses/${nurseId}`);
+      if (selectedNurse && selectedNurse._id === nurseId) {
+        setSelectedNurse(null);
+      }
+      fetchNurses();
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert(error.response?.data?.message || 'Error deleting nurse');
+    }
+  };
+
   useEffect(() => {
     fetchNurses();
   }, []);
@@ -127,7 +141,7 @@ const Nurses = () => {
                 <h4 className="text-xl font-bold">{selectedNurse.name || 'Unnamed'} ({selectedNurse.nurseId})</h4>
                 <p className="text-muted">{selectedNurse.email || 'No email'} | {selectedNurse.phone}</p>
                 <p className="text-muted mt-1">{selectedNurse.age || '--'} years | {selectedNurse.sex || '--'}</p>
-                <div className="mt-2">
+                <div className="mt-2 flex gap-2">
                   <span style={{ 
                       padding: '4px 12px', 
                       borderRadius: '20px', 
@@ -137,6 +151,20 @@ const Nurses = () => {
                     }}>
                       {selectedNurse.isApproved ? 'Approved' : 'Pending Approval'}
                   </span>
+                  <button 
+                    onClick={() => deleteNurse(selectedNurse._id)} 
+                    style={{
+                      padding: '4px 12px', 
+                      borderRadius: '20px', 
+                      fontSize: '0.85rem',
+                      background: 'rgba(239, 68, 68, 0.1)', 
+                      color: '#EF4444', 
+                      border: '1px solid rgba(239, 68, 68, 0.2)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Delete Nurse
+                  </button>
                 </div>
               </div>
             </div>

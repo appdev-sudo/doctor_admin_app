@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Users, CalendarDays, LogOut, Activity, Layers } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, LogOut, Activity, Layers, Archive } from 'lucide-react';
 import logo from '../assets/logo-03.png';
 const DashboardLayout = () => {
   const { admin, logout } = useAuth();
@@ -51,6 +51,9 @@ const DashboardLayout = () => {
           </NavLink>
           <NavLink to="/subscriptions" style={navLinkStyle}>
             <Layers size={20} /> Subscriptions
+          </NavLink>
+          <NavLink to="/archives" style={navLinkStyle}>
+            <Archive size={20} /> Archived Records
           </NavLink>
         </nav>
 
