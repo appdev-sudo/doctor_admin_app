@@ -14,6 +14,7 @@ const Subscriptions = () => {
   const [assignModal, setAssignModal] = useState({ show: false, bookingId: null });
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [scheduleModal, setScheduleModal] = useState({ show: false, booking: null });
+  const [paymentModal, setPaymentModal] = useState({ show: false, subscription: null });
   const [expandedSubs, setExpandedSubs] = useState({});
 
   const fetchSubscriptions = async () => {
@@ -78,6 +79,21 @@ const Subscriptions = () => {
     } catch (error) {
       console.error('Error toggling location:', error);
       alert('Error updating location');
+    }
+  };
+
+  const updateSubscriptionPayment = async (subscriptionId, payload) => {
+    try {
+      const res = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/admin/subscriptions/${subscriptionId}/payment`, payload);
+      if (res.data.success) {
+        if (paymentModal.subscription && paymentModal.subscription._id === subscriptionId) {
+          setPaymentModal({ ...paymentModal, subscription: res.data.subscription });
+        }
+        fetchSubscriptions();
+      }
+    } catch (error) {
+      console.error('Error updating subscription payment:', error);
+      alert('Error updating subscription payment');
     }
   };
 
@@ -193,7 +209,18 @@ const Subscriptions = () => {
                       </div>
                     </td>
                     <td>
-                      <span style={{ color: sub.paymentStatus === 'paid' ? '#10B981' : '#F59E0B' }}>{sub.paymentStatus.toUpperCase()}</span>
+                      <div className="flex flex-col gap-1 items-start">
+                        <span style={{ color: sub.paymentStatus === 'paid' ? '#10B981' : '#F59E0B' }}>
+                          {sub.paymentStatus.toUpperCase()}
+                        </span>
+                        <button
+                          className="btn btn-secondary"
+                          style={{ padding: '2px 8px', fontSize: '0.7rem' }}
+                          onClick={(e) => { e.stopPropagation(); setPaymentModal({ show: true, subscription: sub }); }}
+                        >
+                          Manage Payment
+                        </button>
+                      </div>
                     </td>
                     <td>
                       <span style={{ 
@@ -529,6 +556,73 @@ const Subscriptions = () => {
                 <button type="submit" className="btn btn-primary">Save Schedule</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Manage Payment Modal */}
+      {paymentModal.show && paymentModal.subscription && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 80
+        }}>
+          <div className="glass-card" style={{ width: '400px', background: 'var(--bg-dark)' }}>
+            <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+              <h3 className="font-bold text-xl">Manage Payment</h3>
+              <button onClick={() => setPaymentModal({ show: false, subscription: null })} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <p style={{ marginBottom: '8px' }}><strong>Service:</strong> {paymentModal.subscription.serviceTitle}</p>
+              <p><strong>Total Amount:</strong> Rs. {paymentModal.subscription.totalAmount || 0}</p>
+              <p><strong>Amount Paid:</strong> Rs. {paymentModal.subscription.amountPaid || 0}</p>
+              <p><strong>Amount Left:</strong> Rs. {Math.max(0, (paymentModal.subscription.totalAmount || 0) - (paymentModal.subscription.amountPaid || 0))}</p>
+              <p style={{ marginTop: '4px' }}><strong>Status:</strong> <span style={{ color: paymentModal.subscription.paymentStatus === 'paid' ? '#10B981' : '#F59E0B' }}>{paymentModal.subscription.paymentStatus.toUpperCase()}</span></p>
+            </div>
+
+            {paymentModal.subscription.paymentStatus !== 'paid' && (
+              <div className="flex flex-col gap-2 mt-4">
+                <label>Add Payment (Rs.)</label>
+                <div className="flex gap-2">
+                  <input 
+                    type="number" 
+                    placeholder="e.g. 1000" 
+                    className="glass-input" 
+                    id="sub-add-payment"
+                    style={{ marginBottom: 0, flex: 1 }}
+                  />
+                  <button
+                    className="btn btn-primary"
+                    style={{ background: '#10B981', borderColor: '#10B981', padding: '0 16px' }}
+                    onClick={() => {
+                      const input = document.getElementById('sub-add-payment');
+                      const val = Number(input.value);
+                      if (val > 0) {
+                        updateSubscriptionPayment(paymentModal.subscription._id, { amountToAdd: val });
+                        input.value = '';
+                      }
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {paymentModal.subscription.paymentStatus === 'paid' && (
+              <button
+                className="btn btn-secondary mt-4 w-full"
+                onClick={() => updateSubscriptionPayment(paymentModal.subscription._id, { paymentStatus: 'pending' })}
+              >
+                ↩ Mark Pending (Override)
+              </button>
+            )}
+
+            <div className="flex justify-end mt-6">
+              <button className="btn btn-secondary" onClick={() => setPaymentModal({ show: false, subscription: null })}>Close</button>
+            </div>
           </div>
         </div>
       )}

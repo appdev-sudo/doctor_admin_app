@@ -25,7 +25,8 @@ const Bookings = () => {
     name: '', phone: '', email: '', age: '', sex: 'Male',
     serviceId: '', preferredDate: '', preferredTimeSlot: '10:00 AM',
     street: '', city: '', state: '', pincode: '', nurseId: '', paymentStatus: 'pending',
-    locationType: 'home', clinicLocation: 'Vytalyou Powai', adminNote: ''
+    locationType: 'home', clinicLocation: 'Vytalyou Powai', adminNote: '',
+    totalAmount: '', amountPaid: ''
   });
 
   const fetchBookings = async () => {
@@ -107,7 +108,8 @@ const Bookings = () => {
           name: '', phone: '', email: '', age: '', sex: 'Male',
           serviceId: '', preferredDate: '', preferredTimeSlot: '10:00 AM',
           street: '', city: '', state: '', pincode: '', nurseId: '', paymentStatus: 'pending',
-          locationType: 'home', clinicLocation: 'Vytalyou Powai', adminNote: ''
+          locationType: 'home', clinicLocation: 'Vytalyou Powai', adminNote: '',
+          totalAmount: '', amountPaid: ''
         });
         fetchBookings();
       }
@@ -239,18 +241,18 @@ const Bookings = () => {
     }
   };
 
-  const updatePaymentStatus = async (bookingId, newStatus) => {
+  const updatePayment = async (bookingId, payload) => {
     try {
-      const res = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/admin/bookings/${bookingId}/payment`, { paymentStatus: newStatus });
+      const res = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/admin/bookings/${bookingId}/payment`, payload);
       if (res.data.success) {
         if (selectedBooking && selectedBooking._id === bookingId) {
-          setSelectedBooking(prev => ({ ...prev, paymentStatus: newStatus }));
+          setSelectedBooking(res.data.booking);
         }
         fetchBookings();
       }
     } catch (error) {
-      console.error('Error updating payment status:', error);
-      alert('Error updating payment status');
+      console.error('Error updating payment:', error);
+      alert('Error updating payment');
     }
   };
 
@@ -534,25 +536,46 @@ const Bookings = () => {
                   {selectedBooking.endOtp && <p style={{ marginTop: '8px' }}><strong>End OTP:</strong> <span style={{ color: '#60A5FA', letterSpacing: '2px', fontWeight: 'bold' }}>{selectedBooking.endOtp}</span></p>}
                   
                   <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
-                    <p style={{ marginBottom: '8px' }}><strong>Payment:</strong> <span style={{ color: selectedBooking.paymentStatus === 'paid' ? '#10B981' : '#F59E0B' }}>{selectedBooking.paymentStatus.toUpperCase()}</span></p>
-                    <div className="flex gap-2">
-                      <button
-                        className={`btn ${selectedBooking.paymentStatus === 'paid' ? 'btn-primary' : 'btn-secondary'}`}
-                        style={{ flex: 1, padding: '4px 8px', fontSize: '0.8rem', ...(selectedBooking.paymentStatus === 'paid' ? { background: '#10B981', borderColor: '#10B981' } : {}) }}
-                        onClick={() => updatePaymentStatus(selectedBooking._id, 'paid')}
-                        disabled={selectedBooking.paymentStatus === 'paid'}
-                      >
-                        ✓ Mark as Paid
-                      </button>
-                      <button
-                        className="btn btn-secondary"
-                        style={{ flex: 1, padding: '4px 8px', fontSize: '0.8rem' }}
-                        onClick={() => updatePaymentStatus(selectedBooking._id, 'pending')}
-                        disabled={selectedBooking.paymentStatus === 'pending'}
-                      >
-                        ↩ Mark Pending
-                      </button>
+                    <div style={{ marginBottom: '12px' }}>
+                      <p><strong>Total Amount:</strong> Rs. {selectedBooking.totalAmount || 0}</p>
+                      <p><strong>Amount Paid:</strong> Rs. {selectedBooking.amountPaid || 0}</p>
+                      <p><strong>Amount Left:</strong> Rs. {Math.max(0, (selectedBooking.totalAmount || 0) - (selectedBooking.amountPaid || 0))}</p>
+                      <p style={{ marginTop: '4px' }}><strong>Payment Status:</strong> <span style={{ color: selectedBooking.paymentStatus === 'paid' ? '#10B981' : '#F59E0B' }}>{selectedBooking.paymentStatus.toUpperCase()}</span></p>
                     </div>
+                    {selectedBooking.paymentStatus !== 'paid' && (
+                      <div className="flex gap-2 items-center">
+                        <input 
+                          type="number" 
+                          placeholder="Amount to add" 
+                          className="glass-input" 
+                          style={{ marginBottom: 0, flex: 1, padding: '4px 8px' }}
+                          id={`add-payment-${selectedBooking._id}`}
+                        />
+                        <button
+                          className="btn btn-primary"
+                          style={{ padding: '4px 12px', fontSize: '0.8rem', background: '#10B981', borderColor: '#10B981' }}
+                          onClick={() => {
+                            const input = document.getElementById(`add-payment-${selectedBooking._id}`);
+                            const val = Number(input.value);
+                            if (val > 0) {
+                              updatePayment(selectedBooking._id, { amountToAdd: val });
+                              input.value = '';
+                            }
+                          }}
+                        >
+                          Add Payment
+                        </button>
+                      </div>
+                    )}
+                    {selectedBooking.paymentStatus === 'paid' && (
+                      <button
+                        className="btn btn-secondary mt-2 w-full"
+                        style={{ padding: '4px 8px', fontSize: '0.8rem' }}
+                        onClick={() => updatePayment(selectedBooking._id, { paymentStatus: 'pending' })}
+                      >
+                        ↩ Mark Pending (Override)
+                      </button>
+                    )}
                   </div>
                   {selectedBooking.paymentId && <p style={{ marginTop: '8px' }}><strong>Payment ID:</strong> {selectedBooking.paymentId}</p>}
                   {selectedBooking.adminNote && (
@@ -926,11 +949,12 @@ const Bookings = () => {
                   </select>
                 </div>
                 <div className="input-group" style={{ marginBottom: 0 }}>
-                  <label>Payment Status</label>
-                  <select className="glass-input" value={formData.paymentStatus} onChange={e => setFormData({...formData, paymentStatus: e.target.value})}>
-                    <option value="pending">Pending</option>
-                    <option value="paid">Completed (Paid)</option>
-                  </select>
+                  <label>Total Amount (Rs.)</label>
+                  <input type="number" className="glass-input" placeholder="e.g. 5000" value={formData.totalAmount} onChange={e => setFormData({...formData, totalAmount: e.target.value})} />
+                </div>
+                <div className="input-group" style={{ marginBottom: 0 }}>
+                  <label>Amount Paid Now (Rs.)</label>
+                  <input type="number" className="glass-input" placeholder="e.g. 1000" value={formData.amountPaid} onChange={e => setFormData({...formData, amountPaid: e.target.value})} />
                 </div>
               </div>
 
