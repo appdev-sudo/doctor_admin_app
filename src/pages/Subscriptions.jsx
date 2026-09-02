@@ -69,8 +69,16 @@ const Subscriptions = () => {
 
   const toggleLocation = async (bookingId, newLocation) => {
     try {
+      let clinicLocation = undefined;
+      if (newLocation === 'clinic') {
+        const clinic = window.prompt("Enter Clinic Location (e.g., Vytalyou Powai, Vytalyou Juhu, Vytalyou Worli):", "Vytalyou Powai");
+        if (!clinic) return; // User cancelled the prompt
+        clinicLocation = clinic;
+      }
+
       await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/admin/bookings/${bookingId}/location`, {
-        locationType: newLocation
+        locationType: newLocation,
+        clinicLocation
       });
       fetchSubscriptions();
       if (selectedBooking && selectedBooking._id === bookingId) {
